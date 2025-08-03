@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Speech overlay for OBS Studio</title>
+    <link rel="stylesheet" href="static/css/obs-speech-overlay.css">
+  </head>
+  <body>
+    <!-- OBS speech overlay test. -->
+    <div id="subtitleWrapper">
+      <div id="oldSubtitle" class="subtitle-block">
+        <div id="oldTranslated" class="text-container">
+          <!-- 翻訳テキスト -->
+        </div>
+        <div id="oldOriginal" class="text-container">
+          <!-- オリジナルテキスト -->
+        </div>
+      </div>
+
+      <div id="newSubtitle" class="subtitle-block">
+        <div id="newTranslated" class="text-container">
+          <!-- 翻訳テキスト -->
+        </div>
+        <div id="newOriginal" class="text-container">
+          <!-- オリジナルテキスト -->
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/static/js/obs-speech-overlay/obs-speech-overlay.js"></script>
+  </body>
+</html>

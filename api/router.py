@@ -1,0 +1,92 @@
+from pathlib import Path
+
+from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+import asyncio
+
+from api.ws_handler import process_ws_message
+from config import Endpoints, Htmls, WAITING_LOOP_SEC
+
+# Main module imports this router
+router = APIRouter()
+
+# set template directory
+TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
+templates = Jinja2Templates(directory=TEMPLATE_DIR)
+
+# Store websocket to send message to OBS-speech-overlay.html
+ws_OBS_speech_overlay: WebSocket | None = None
+
+
+async def wait_external_websocket_connects(external_socket):
+    # polling timeout 10sec
+    timeout = 10
+    # polling interval 0.5sec
+    interval = 0.5
+    elasped_time = 0
+    while external_socket is None:
+        if elasped_time > timeout:
+            print("websocket: OBS-speech-overlay does not connect within timeout")
+            return False
+
+        # async wait
+        await asyncio.sleep(interval)
+        elasped_time = interval
+    return True
+
+
+# For Chrome browser to do speech recognition
+@router.get(Endpoints.SPEECH_RECOGNITION, response_class=HTMLResponse)
+async def speech_recognition(request: Request):
+    return templates.TemplateResponse(
+        f"{Htmls.SPEECH_RECOGNITION}", {"request": request}
+    )
+
+
+# For OBS browser source to show data
+@router.get(Endpoints.OBS_SPEECH_OVERLAY, response_class=HTMLResponse)
+async def root(request: Request):
+    return templates.TemplateResponse(
+        f"{Htmls.OBS_SPEECH_OVERLAY}", {"request": request}
+    )
+
+
+# WebSocket endpoint where speech-recogniton script connects
+# When receiving data from speech-recogniton script,
+# process_ws_message starts.
+@router.websocket(Endpoints.SPEECH_RECOGNITION_WS)
+async def websocket_speech_recognition(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            message = await websocket.receive_text()
+            # await wait_external_websocket_connects(ws_OBS_speech_overlay)
+            await process_ws_message(websocket, ws_OBS_speech_overlay, message)
+    except WebSocketDisconnect:
+        print("WebSocket disconnected")
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+
+
+# WebSocket endpoint where OBS-speech-overlay script connects
+# For sending message to OBS. Nothing to be received.
+# Keep websocket connection with while loop
+@router.websocket(Endpoints.OBS_SPEECH_OVERLAY_WS)
+async def websocket_obs_speech_overlay(websocket: WebSocket):
+    global ws_OBS_speech_overlay
+    # When OBS browser source starts, websocket between fast api and OBS establishes.
+    await websocket.accept()
+    # websocket has established, then store the websocket
+    ws_OBS_speech_overlay = websocket
+    # print(ws_OBS_speech_overlay)
+
+    try:
+        while True:
+            # does not expect receiving data.
+            await asyncio.sleep(WAITING_LOOP_SEC)
+    except WebSocketDisconnect:
+        print("WebSocket disconnected")
+        ws_OBS_speech_overlay = None
+    except Exception as e:
+        print(f"WebSocket error: {e}")

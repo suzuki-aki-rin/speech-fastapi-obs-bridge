@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Speech Recognition WebSocket Demo</title>
+</head>
+<body>
+    <h1>Speech Recognition &rarr; WebSocket Demo</h1>
+<div>
+    <label for="language">Recognition Language:</label>
+    <select id="language"></select>
+    <div id="currentLang"></div>
+</div>
+    <button id="startBtn">Restart Speech Recognition</button>
+    <button id="stopBtn" disabled>Stop</button>
+    <div id="result" style="margin:2em 0;white-space: pre-line;"></div>
+    <!-- Load the main module, which imports the others -->
+    <script type="module" src="/static/js/speech-recognition/speech-recognition.js"></script>
+</body>
+</html>

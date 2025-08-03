@@ -1,0 +1,93 @@
+# config files that inlucdes secret values.
+config.py
+
+# scratch codes directory
+sandbox/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.pyl
+
+# C extensions
+*.so
+*.whl
+
+# Distribution / packaging
+.Python
+env/
+venv/
+lib/
+lib64/
+include/
+bin/
+share/
+*.egg-info/
+.installed.cfg
+*.egg
+dist/
+build/
+*.manifest
+
+# Editors
+.vscode/ # VS Code specific files (e.g., settings, launch configurations)
+.idea/   # PyCharm specific files
+
+# OS generated files
+.DS_Store
+.Trashes
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Database
+*.sqlite3
+*.db
+
+# Environment variables
+.env
+.flaskenv
+
+# FastAPI specific (if you're generating bundled static files like with Webpack/Rollup)
+# If you build your frontend assets into a 'dist' folder inside your static directory,
+# you might want to ignore the source files but keep the built output.
+# For example, if your static files are in 'app/static' and your built assets are in 'app/static/dist'
+# app/static/node_modules/
+# app/static/src/
+# If you bundle your JS/CSS, you might want to ignore these:
+# app/static/js_src/
+# app/static/css_src/
+
+# Development specific files that are not part of the deployed application
+# For example, if you have some temporary testing files or large datasets
+# that shouldn't be committed to the repo.
+# temp/
+# data/
+
+# Python specific testing
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Jupyter Notebook files
+.ipynb_checkpoints/
+
+# Poetry specific files (if you use Poetry for dependency management)
+.poetry/
+
+# Docker related files (if you're using Docker)
+.dockerignore
+Dockerfile.orig
+
+# If you're building a frontend framework that generates a build directory
+# and you're serving it via FastAPI's static files.
+# e.g., for a React/Vue/Angular app that builds to a 'dist' folder
+# frontend/node_modules/
+# frontend/dist/
+# If you include the built frontend directly in your FastAPI static directory:
+# public/build/
+# static/build/ # or whatever your build output directory is
