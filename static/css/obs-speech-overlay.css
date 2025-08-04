@@ -12,6 +12,7 @@ body {
   paint-order: stroke;
 }
 
+/* Has two subtile-blocks.*/
 #subtitleWrapper {
   position: fixed;
   bottom: 0%;
@@ -19,23 +20,28 @@ body {
   width: 1000px;              /* 必要に応じ調整 */
   /* max-width: 90vw;           /* 画面幅に対する最大幅 */ */
   display: flex;
-  flex-direction: column;    /* 子要素を縦に並べる */
+  flex-direction: row;    /* 子要素を縦に並べる */
+  justify-content: flex-end;
   gap: 10px;                 /* 下の字幕と上の字幕の隙間 */
   pointer-events: none;      /* 必要ならクリックを透過（字幕なら選択はoffに） */
   user-select: none;         /* テキスト選択無効にするなら */
   z-index: 1000;             /* 必要に応じ前面に表示 */
 }
 
-/* 1親divのスタイル */
+/* Has two text-container */
 .subtitle-block {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   width: 100%; /* 幅の制限（必要に応じ調整） */
   margin-bottom: 20px;
 }
 
-/* 上下2つのテキストdiv共通 */
+/* Shows texts */
 .text-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
   border: 1px solid #ccc;
   padding: 4px;
   box-sizing: border-box;
@@ -57,8 +63,9 @@ body {
 }
 
   .typing {
+    white-space: nowrap;
     display: inline-block;
-    min-width: 40px;
+    min-width: 60px;
     /* vertical-align: middle; */
   }
   .dot {
