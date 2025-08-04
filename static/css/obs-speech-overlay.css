@@ -39,9 +39,10 @@ body {
   border: 1px solid #ccc;
   padding: 4px;
   box-sizing: border-box;
+  height: fit-content;
   min-height: 65px; /* 高さの最低保証 */
   line-height: 57px;
-  width: 100%;
+  width: fit-content;
   overflow-wrap: break-word; /* テキストの改行を許可 */
   word-break: break-word;    /* 長い単語があっても改行 */
   white-space: normal;       /* 改行可能に */
