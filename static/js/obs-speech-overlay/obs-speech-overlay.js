@@ -20,8 +20,8 @@ function appendTextNodeEtcToNewOriginal() {
     dotSpan.className = 'dot';
     dots.appendChild(dotSpan);
   }
-  newOriginal.appendChild(dots);
   newOriginal.appendChild(textNode);
+  newOriginal.appendChild(dots);
 
   return { textNode: textNode, dots: dots };
 }

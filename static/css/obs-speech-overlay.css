@@ -54,7 +54,7 @@ body {
   word-break: break-word;    /* 長い単語があっても改行 */
   white-space: normal;       /* 改行可能に */
   text-align: right;         /* 右揃え */
-  direction: rtl;            /* 右から左に伸ばす */
+  /* direction: rtl;            /* 右から左に伸ばす */ */
 }
 /* direction: rtl によって、文字は右揃え。  
 ただしJS上で文字内容は普通に記述OKです。 */
