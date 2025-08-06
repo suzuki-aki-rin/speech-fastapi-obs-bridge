@@ -48,8 +48,7 @@ function onMessage(message) {
 // This function recieves two type of messages: recognition, translated.
 export function showMessage(message) {
   const obj = JSON.parse(message);
-  console.log("type: ", obj.type);
-
+  // console.log("type: '" + obj.type + "'");
   switch (obj.type) {
     case 'original':
       const recogText = obj.recogText;
@@ -61,8 +60,8 @@ export function showMessage(message) {
       updateNewOriginal(recogText, isFinal, config.eraseTimeMsec);
       break;
     case 'translated':
-      // TODO:
-      const text = obj.transText;
+      const text = obj.text;
+      console.log("translated: ", text);
       updateNewTranslated(text, config.eraseTimeMsec);
       break;
     default:
