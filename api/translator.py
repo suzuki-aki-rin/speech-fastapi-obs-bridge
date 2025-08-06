@@ -1,5 +1,6 @@
 import json
-import requests
+import httpx
+import asyncio
 
 from config import Urls
 
@@ -25,16 +26,17 @@ class Translator:
         else:
             raise ValueError("Unsupported API type")
 
-    def call_api(self, text: str) -> str:
+    async def call_api(self, text: str) -> str:
         if self.api_type == "gas":
             params = {
                 "text": text,
                 "source": self.source_lang.lower(),
                 "target": self.target_lang.lower(),
             }
-            response = requests.get(self.base_url, params=params)
-            response.raise_for_status()
-            return response.text
+            async with httpx.AsyncClient(follow_redirects=True) as client:
+                response = await client.get(self.base_url, params=params)
+                response.raise_for_status()
+                return response.text
         else:
             raise ValueError("Unsupported API type")
 
@@ -47,49 +49,24 @@ class Translator:
         }
         return json.dumps(result, ensure_ascii=False)
 
-    def translate(self, text: str) -> str:
-        translated_text = self.call_api(text)
+    async def translate(self, text: str) -> str:
+        translated_text = await self.call_api(text)
         return self.to_json(text, translated_text)
 
 
-def main():
-    translator = Translator("ja", "en")
-    json_result = translator.translate("こんにちは、初めまして")
-    print(json_result)
+async def main():
+    # Create a Translator instance with source and target languages
+    translator = Translator(source_lang="en", target_lang="ja")
+
+    # Text to translate
+    text_to_translate = "Hello, how are you?"
+
+    # Call the async translate method
+    translated_json = await translator.translate(text_to_translate)
+
+    # Print the JSON result
+    print("Translation result:", translated_json)
 
 
 if __name__ == "__main__":
-    main()
-
-
-#
-# # Translate text with Google app script
-# def translate_text_by_GAS(
-#     text: str,
-#     source_lang: str,
-#     target_lang: str,
-#     base_url: str = Urls.TRASLATOR_BASE_URL,
-# ) -> str | None:
-#     query_params = {
-#         "text": text,
-#         "source": source_lang,
-#         "target": target_lang,
-#     }
-#     try:
-#         response = requests.get(url=base_url, params=query_params)
-#         response.raise_for_status()
-#         # This API return plain/text
-#         return response.text
-#
-#     except Exception as e:
-#         print(f"some exception: {e}")
-#
-#
-# # Translate text from source lang to target lang. wrapper
-# def translate_text(text: str, source_lang: str, target_lang: str) -> str | None:
-#     return (
-#         translate_text_by_GAS(
-#             text=text, source_lang=source_lang, target_lang=target_lang
-#         )
-#         or None
-#     )
+    asyncio.run(main=main())

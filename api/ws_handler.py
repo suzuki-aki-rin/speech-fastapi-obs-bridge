@@ -71,7 +71,7 @@ class WsMessageProcessor:
                             self.translator = Translator(
                                 Translation.SOURCE_LANGUAGE, Translation.TARGET_LANGUAGE
                             )
-                        json_result = self.translator.translate(text)
+                        json_result = await self.translator.translate(text)
                         if ws_messgae_target:
                             await ws_messgae_target.send_text(json_result)
 
