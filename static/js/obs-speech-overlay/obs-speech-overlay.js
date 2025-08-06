@@ -17,6 +17,7 @@ const idNewOrig = 'newOriginal';
 const idNewTranslated = 'newTranslated';
 const idOldOrig = 'oldOriginal';
 const idOldTranslated = 'oldTranslated';
+const idTranslatedContainer = 'translatedSubtitle';
 
 
 //  SECTION:============================================================= 
@@ -166,6 +167,10 @@ function isTextNode(node) {
   return node && node.nodeType === Node.TEXT_NODE;
 }
 
+function hideElem(elem) {
+  elem.classList.add('hidden');
+}
+
 
 //  SECTION:============================================================= 
 //            Main loop     
@@ -176,6 +181,12 @@ const newOriginal = document.getElementById(idNewOrig);
 const newTranslated = document.getElementById(idNewTranslated);
 const oldOriginal = document.getElementById(idOldOrig);
 const oldTranslated = document.getElementById(idOldTranslated);
+const translatedContainer = document.getElementById(idTranslatedContainer);
+
+
+if (!config.showTranslated) {
+  hideElem(translatedContainer);
+}
 
 const wsclient = new WSClient({ url: config.urlObsSpeechOverlayWs, onMessage });
 
