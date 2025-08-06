@@ -32,7 +32,7 @@ class WsMessageProcessor:
     async def process_ws_message(
         self,
         ws_message_source: WebSocket,
-        ws_messgae_target: WebSocket | None,
+        ws_messgae_target: WebSocket,
         message: str,
     ):
         """
@@ -56,6 +56,7 @@ class WsMessageProcessor:
             # console output
             print_message(text, is_final, language_code)
 
+            # Do if recognition text is final
             if is_final:
                 # send to Translator
                 if Translation.ENABLE == "True":

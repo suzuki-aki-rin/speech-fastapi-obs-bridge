@@ -64,8 +64,10 @@ async def websocket_speech_recognition(websocket: WebSocket):
     try:
         while True:
             message = await websocket.receive_text()
-            # TODO:
-            # await wait_external_websocket_connects(ws_OBS_speech_overlay)
+            await wait_external_websocket_connects(ws_OBS_speech_overlay)
+            if ws_OBS_speech_overlay is None:
+                print("websocket: OBS-speech-overlay does not connect")
+                break
             await processor.process_ws_message(
                 websocket, ws_OBS_speech_overlay, message
             )
