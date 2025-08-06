@@ -10,7 +10,7 @@ class Translator:
         source_lang: str,
         target_lang: str,
         api_type: str = "gas",
-        result_type: str = "traslated",
+        result_type: str = "translated",
         # api_key: str | None = None,
     ):
         self.source_lang = source_lang
