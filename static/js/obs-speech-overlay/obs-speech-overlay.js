@@ -1,5 +1,5 @@
 import { WSClient } from '../ws/wsclient.js';
-import { testShowMesasgeOriginals, testShowMesasgeTranslated } from '../../../tests/js/obs-speech-overlay.test.js';
+import { testShowMesasgeOriginals, testShowMesasgeTranslated } from '../tests/obs-speech-overlay.test.js';
 // import {
 //     LANGUAGES,
 //     DEFAULT_LANGUAGE_CODE,
@@ -183,5 +183,6 @@ const { textNode: textNode, dots: dots } = appendTextNodeEtcToNewOriginal();
 
 
 
+testShowMesasgeOriginals();
 // testShowMesasgeOriginals();
 // testShowMesasgeTranslated();
