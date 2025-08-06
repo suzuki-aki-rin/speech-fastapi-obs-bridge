@@ -14,6 +14,12 @@ def build_message_to_OBS(text: str, is_final: bool, language_code: str) -> str:
     return json.dumps(message, ensure_ascii=False)
 
 
+def print_message(message: str, is_final: bool, language_code: str):
+    is_final_text = "[Final  ]" if is_final else "[Interim]"
+
+    print(f"{is_final_text} {language_code}:{message}")
+
+
 async def process_ws_message(
     ws_speech_recog: WebSocket, ws_OBS_speech: WebSocket | None, message: str
 ):
@@ -30,11 +36,7 @@ async def process_ws_message(
         language_label = language.get("label")
 
         # console output
-        if is_final:
-            print(f"[Final  ] {language_code}:{text}")
-
-        else:
-            print(f"[Interim] {language_code}:{text}")
+        print_message(text, is_final, language_code)
 
         if ws_OBS_speech:
             message_for_OBS = build_message_to_OBS(text, is_final, language_code)
