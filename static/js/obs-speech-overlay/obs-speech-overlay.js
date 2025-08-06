@@ -1,4 +1,6 @@
 import { WSClient } from '../ws/wsclient.js';
+import config from './config.js';
+
 import { testShowMesasgeOriginals, testShowMesasgeTranslated } from '../tests/obs-speech-overlay.test.js';
 // import {
 //     LANGUAGES,
@@ -11,8 +13,6 @@ import { testShowMesasgeOriginals, testShowMesasgeTranslated } from '../tests/ob
 //            Constants     
 //  ===================================================================== 
 
-const URL_WS_OBS_SPEECH_OVERLAY = 'ws://localhost:8000/ws/obs-speech-overlay';
-const ERASE_TIME_MSEC = 10000;
 const idNewOrig = 'newOriginal';
 const idNewTranslated = 'newTranslated';
 const idOldOrig = 'oldOriginal';
@@ -76,12 +76,12 @@ export function showMessage(message) {
       if (isFinal) { dots.classList.add('hidden'); }
       else { dots.classList.remove('hidden'); }
 
-      updateNewOriginal(recogText, isFinal, ERASE_TIME_MSEC);
+      updateNewOriginal(recogText, isFinal, config.eraseTimeMsec);
       break;
     case 'translated':
       // TODO:
       const text = obj.transText;
-      updateNewTranslated(text, ERASE_TIME_MSEC);
+      updateNewTranslated(text, config.eraseTimeMsec);
       break;
     default:
       console.error("Received bad json.");
@@ -177,12 +177,11 @@ const newTranslated = document.getElementById(idNewTranslated);
 const oldOriginal = document.getElementById(idOldOrig);
 const oldTranslated = document.getElementById(idOldTranslated);
 
-const wsclient = new WSClient({ url: URL_WS_OBS_SPEECH_OVERLAY, onMessage });
+const wsclient = new WSClient({ url: config.urlObsSpeechOverlayWs, onMessage });
 
 const { textNode: textNode, dots: dots } = appendTextNodeEtcToNewOriginal();
 
 
 
-testShowMesasgeOriginals();
 // testShowMesasgeOriginals();
 // testShowMesasgeTranslated();
