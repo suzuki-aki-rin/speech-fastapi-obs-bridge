@@ -48,29 +48,32 @@ class WsMessageProcessor:
             language_code = language.get("code")
             language_label = language.get("label")
 
-            # console output
-            print_message(text, is_final, language_code)
-
-            # send to Translator
-            if Translation.ENABLE == "True":
-                if Translation.SOURCE_LANGUAGE != shorten_language_code(language_code):
-                    raise ValueError(
-                        f"language code mismatch: {Translation.SOURCE_LANGUAGE} != {language_code}"
-                    )
-                else:
-                    # translator is created once
-                    if self.translator is None:
-                        self.translator = Translator(
-                            Translation.SOURCE_LANGUAGE, Translation.TARGET_LANGUAGE
-                        )
-                    json_result = self.translator.translate(text)
-                    if ws_messgae_target:
-                        await ws_messgae_target.send_text(json_result)
-
             # send to OBS
             if ws_messgae_target:
                 message_for_obs = build_message_to_obs(text, is_final, language_code)
                 await ws_messgae_target.send_text(message_for_obs)
+
+            # console output
+            print_message(text, is_final, language_code)
+
+            if is_final:
+                # send to Translator
+                if Translation.ENABLE == "True":
+                    if Translation.SOURCE_LANGUAGE != shorten_language_code(
+                        language_code
+                    ):
+                        raise ValueError(
+                            f"language code mismatch: {Translation.SOURCE_LANGUAGE} != {language_code}"
+                        )
+                    else:
+                        # translator is created once
+                        if self.translator is None:
+                            self.translator = Translator(
+                                Translation.SOURCE_LANGUAGE, Translation.TARGET_LANGUAGE
+                            )
+                        json_result = self.translator.translate(text)
+                        if ws_messgae_target:
+                            await ws_messgae_target.send_text(json_result)
 
         except json.JSONDecodeError:
             print(f"Received non-JSON message: {message}")
