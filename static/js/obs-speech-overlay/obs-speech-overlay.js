@@ -1,25 +1,6 @@
 import { WSClient } from '../ws/wsclient.js';
 import config from './config.js';
 
-import { testShowMesasgeOriginals, testShowMesasgeTranslated } from '../tests/obs-speech-overlay.test.js';
-// import {
-//     LANGUAGES,
-//     DEFAULT_LANGUAGE_CODE,
-//     NO_SPEECH_TIMEOUT,
-//     URL_WS_SPEECH_RECOGNITION
-// } from './config.js';
-
-//  SECTION:============================================================= 
-//            Constants     
-//  ===================================================================== 
-
-const idNewOrig = 'newOriginal';
-const idNewTranslated = 'newTranslated';
-const idOldOrig = 'oldOriginal';
-const idOldTranslated = 'oldTranslated';
-const idTranslatedContainer = 'translatedSubtitle';
-
-
 //  SECTION:============================================================= 
 //            Functions     
 //  ===================================================================== 
@@ -177,20 +158,21 @@ function hideElem(elem) {
 //  ===================================================================== 
 
 // Get DOM elements to access
-const newOriginal = document.getElementById(idNewOrig);
-const newTranslated = document.getElementById(idNewTranslated);
-const oldOriginal = document.getElementById(idOldOrig);
-const oldTranslated = document.getElementById(idOldTranslated);
-const translatedContainer = document.getElementById(idTranslatedContainer);
+const newOriginal = document.getElementById(config.idNewOrig);
+const newTranslated = document.getElementById(config.idNewTranslated);
+const oldOriginal = document.getElementById(config.idOldOrig);
+const oldTranslated = document.getElementById(config.idOldTranslated);
+const translatedContainer = document.getElementById(config.idTranslatedContainer);
+const { textNode: textNode, dots: dots } = appendTextNodeEtcToNewOriginal();
 
-
+// If translated text is not used, remove it.
 if (!config.showTranslated) {
   hideElem(translatedContainer);
 }
 
+// Instantiate Websocket client.
 const wsclient = new WSClient({ url: config.urlObsSpeechOverlayWs, onMessage });
 
-const { textNode: textNode, dots: dots } = appendTextNodeEtcToNewOriginal();
 
 
 
