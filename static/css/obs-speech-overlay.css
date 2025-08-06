@@ -40,6 +40,7 @@ body {
 /* Shows texts */
 .text-container {
   display: flex;
+  visibility: hidden;
   flex-direction: row;
   align-items: flex-end;
   border: 1px solid #ccc;
@@ -60,6 +61,7 @@ body {
 
 .text-container.has-text {
   background-color: rgba(0, 0, 0, 0.5); /* 中身がある時の背景色（半透明黒など） */
+  visibility:visible;
 }
 
   .typing {
