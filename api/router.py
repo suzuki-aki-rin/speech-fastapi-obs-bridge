@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import asyncio
 
-from api.ws_handler import process_ws_message
+from api.ws_handler import WsMessageProcessor
 from config import Endpoints, Htmls, WAITING_LOOP_SEC
 
 # Main module imports this router
@@ -58,11 +58,17 @@ async def root(request: Request):
 @router.websocket(Endpoints.SPEECH_RECOGNITION_WS)
 async def websocket_speech_recognition(websocket: WebSocket):
     await websocket.accept()
+
+    # Create an instance of MessageProcessor so translator persists per connection
+    processor = WsMessageProcessor()
     try:
         while True:
             message = await websocket.receive_text()
+            # TODO:
             # await wait_external_websocket_connects(ws_OBS_speech_overlay)
-            await process_ws_message(websocket, ws_OBS_speech_overlay, message)
+            await processor.process_ws_message(
+                websocket, ws_OBS_speech_overlay, message
+            )
     except WebSocketDisconnect:
         print("WebSocket disconnected")
     except Exception as e:
