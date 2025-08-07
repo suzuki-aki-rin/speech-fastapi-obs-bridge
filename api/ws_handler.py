@@ -1,7 +1,6 @@
 import json
 import logging
 
-import os
 from datetime import datetime
 from enum import Enum
 
@@ -56,7 +55,7 @@ logger = logging.getLogger(__name__)
 
 #  SECTION:=============================================================
 #            Functions, utility
-#  =====================================================================k
+#  =====================================================================
 
 
 def build_message_to_obs(text: str, is_final: bool, language_code: str) -> str:
