@@ -28,5 +28,21 @@ class Urls(StrEnum):
     GAS_BASE_URL = "https://script.google.com/macros/s/" + Secrets.GAS_ID + "/exec"
 
 
+# Transaltor settings
+class Translation(StrEnum):
+    # ENABLE = "False"
+    ENABLE = "True"
+    SOURCE_LANGUAGE = "ja"
+    TARGET_LANGUAGE = "en"
+
+
+class LoggingConfig(StrEnum):
+    ENABLE = "True"
+    FILEPATH = "/tmp/logfile_from_fastapi.log"
+    TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
+    FINAL_TEXT_ENABLE = "True"
+    TRANSLATION_ENABLE = "True"
+
+
 # loop interval(second) of websocket for obs-speech-overlay
 WAITING_LOOP_SEC = 1
