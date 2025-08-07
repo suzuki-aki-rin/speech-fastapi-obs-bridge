@@ -33,7 +33,8 @@ class Translator:
     def _make_result_dict(self, original_text: str, translated_text: str) -> dict:
         """Create a dictionary with translation data."""
         return {
-            "text": translated_text,
+            "translated_text": translated_text,
+            "original_text": original_text,
             "source_language": self.source_lang,
             "target_language": self.target_lang,
             "type": self.result_type,

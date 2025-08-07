@@ -34,15 +34,25 @@ function onMessage(message) {
 }
 
 // received data structure
-// const data = {
+// original text:
+// {
 //   recogText: recogText,
 //   isFinal: isFinal,
 //   language: {
 //     code: recogLangCode,
 //     label: recogLangLabel,
-//   }
-//   
-// 
+//   },
+//   type: "original",
+// }
+//
+// translated text:
+// {
+// "translated_text": translated_text,
+// "original_text": original_text,
+// "source_language": self.source_lang,
+// "target_language": self.target_lang,
+// "type": self.result_type,
+// }
 
 // Shows text in broser.
 // This function recieves two type of messages: recognition, translated.
@@ -60,7 +70,7 @@ export function showMessage(message) {
       updateNewOriginal(recogText, isFinal, config.eraseTimeMsec);
       break;
     case 'translated':
-      const text = obj.text;
+      const text = obj.translated_text;
       console.log("translated: ", text);
       updateNewTranslated(text, config.eraseTimeMsec);
       break;
