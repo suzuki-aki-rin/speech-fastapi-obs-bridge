@@ -1,10 +1,25 @@
 import json
 import logging
 
+import os
+from datetime import datetime
+from enum import Enum
+
 from fastapi import WebSocket
 
 from api.translator import Translator
-from config import Translation
+from config import LoggingConfig, Translation
+
+#  SECTION:=============================================================
+#            Constatnts
+#  =====================================================================
+
+
+# Define LogType that is used in _log_selected_to_file method.
+class LogType(Enum):
+    FINAL = "final"
+    TRANSLATION = "translation"
+    # add other types and flags here as needed
 
 
 #  SECTION:=============================================================
@@ -19,6 +34,25 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+# # Setup separate logger for final texts and/or translated texts
+# # (disabled by default)
+# # This logger does not log to file in FastAPI app.
+#
+# file_logger = logging.getLogger("file_logger")
+# file_logger.setLevel(logging.INFO)
+#
+# # Prevent adding multiple handlers if this code is run multiple times
+# if not file_logger.hasHandlers():
+#     if LoggingConfig.ENABLE:
+#         # file_handler = logging.FileHandler("final_texts.log", encoding="utf-8")
+#         file_handler = logging.FileHandler(log_file_path, encoding="utf-8")
+#         file_handler.setLevel(logging.INFO)
+#         formatter = logging.Formatter("%(asctime)s - %(message)s")
+#         file_handler.setFormatter(formatter)
+#         file_logger.addHandler(file_handler)
+#     else:
+#         # If logging disabled, add NullHandler to avoid "No handler found" warnings
+#         file_logger.addHandler(logging.NullHandler())
 
 #  SECTION:=============================================================
 #            Functions, utility
@@ -46,9 +80,44 @@ def shorten_language_code(language_code: str) -> str:
 
 class WsMessageProcessor:
     translator: Translator | None
+    LOG_FILE_PATH = LoggingConfig.FILEPATH
+    LOG_FILE_TIMESTAMP_FORMAT = LoggingConfig.TIMESTAMP_FORMAT
 
     def __init__(self):
         self.translator = None
+
+    def _log_selected_to_file(self, text: str, log_type: LogType) -> None:
+        """
+        Write text to the log file only if the corresponding flag in LoggingConfig is True.
+        This implementation uses direct file I/O to avoid conflicts with FastAPI's logging.
+
+        Before using this method, check LogType class, LogginConfig and flag_map.
+        """
+        if not LoggingConfig.ENABLE:
+            return  # Do not log if logging is disabled
+
+        # Define a mapping from LogType to the corresponding flag
+        flag_map = {
+            LogType.FINAL: LoggingConfig.FINAL_TEXT_ENABLE,
+            LogType.TRANSLATION: LoggingConfig.TRANSLATION_ENABLE,
+            # add other types and flags here as needed
+        }
+
+        if not flag_map.get(log_type, False):
+            return  # Do not log if flag is False or log_type unknown
+
+        log_time_stamp_format = self.LOG_FILE_TIMESTAMP_FORMAT or "%Y-%m-%d %H:%M:%S"
+
+        timestamp = datetime.now().strftime(log_time_stamp_format)
+        log_entry = f"{timestamp} - {text} - {log_type.value}\n"
+
+        # Open the log file in append mode with UTF-8 encoding
+        try:
+            with open(self.LOG_FILE_PATH, mode="a", encoding="utf-8") as f:
+                f.write(log_entry)
+        except Exception as e:
+            # Optionally handle or print the error; here we just print to stderr
+            print(f"Failed to write to log file {self.LOG_FILE_PATH}: {e}")
 
     def _loginfo_recognition_text(
         self, recognition_text: str, is_final: bool, language_code: str
@@ -134,7 +203,7 @@ class WsMessageProcessor:
             return
         recog_text, is_final, language_code, language_label = unpacked
 
-        # Log recognition text
+        # Log recognition text to console and file if needed.
         self._loginfo_recognition_text(recog_text, is_final, language_code or "")
 
         # Send message to OBS, regardless of weather the recognition text is final or not
@@ -151,9 +220,17 @@ class WsMessageProcessor:
         # Pass recognition text to other modules
         # Toggle the modules by config.py
         if is_final:
+            # Log final text to console and file if needed.
+            self._log_selected_to_file(recog_text, LogType.FINAL)
+
             if Translation.ENABLE == "True":
                 # Translate text
                 result = await self._translate_text(recog_text, language_code or "")
+                # Log translated text file if needed.
+                self._log_selected_to_file(
+                    result["translated_text"], LogType.TRANSLATION
+                )
                 result_json = json.dumps(result, ensure_ascii=False)
                 # Send translated text to OBS
                 await self._send_to_obs(ws_message_target, result_json)
+                # Log translated text to console and file if needed.
