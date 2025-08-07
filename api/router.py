@@ -1,3 +1,17 @@
+"""FastAPI router for handling WebSocket requests.
+
+This module defines the API endpoints for handling WebSocket requests and
+providing HTML responses for the OBS browser source and speech recognition.
+
+Usage example:
+
+  from fastapi import FastAPI
+  from api.router import router
+
+  app = FastAPI()
+  app.include_router(router)
+"""
+
 from pathlib import Path
 
 from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
@@ -7,6 +21,11 @@ import asyncio
 
 from api.ws_handler import WsMessageProcessor
 from config import Endpoints, Htmls, WAITING_LOOP_SEC
+
+
+# SECTION:=============================================================
+#           Attributes
+# =====================================================================
 
 # Main module imports this router
 router = APIRouter()
@@ -19,7 +38,19 @@ templates = Jinja2Templates(directory=TEMPLATE_DIR)
 ws_OBS_speech_overlay: WebSocket | None = None
 
 
+# SECTION:=============================================================
+#           Functions
+# =====================================================================
+
+
 async def wait_external_websocket_connects(external_socket):
+    """Waits for the external WebSocket to connect.
+
+    Args:
+        external_socket (WebSocket): The external WebSocket to wait for.
+    Returns:
+        bool: True if the external WebSocket is connected, False otherwise.
+    """
     # polling timeout 10sec
     timeout = 10
     # polling interval 0.5sec
@@ -34,6 +65,11 @@ async def wait_external_websocket_connects(external_socket):
         await asyncio.sleep(interval)
         elasped_time = interval
     return True
+
+
+# SECTION:=============================================================
+#           Endpoints
+# =====================================================================
 
 
 # For Chrome browser to do speech recognition

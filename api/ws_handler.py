@@ -1,3 +1,14 @@
+"""
+Provides a class for handling WebSocket messages and translating text.
+
+Examples:
+
+  from api.ws_handler import WebSocketMessageProcessor
+
+  processor = WebSocketMessageProcessor()
+  await processor.process_ws_message(websocket, ws_OBS_speech_overlay, message)
+"""
+
 import json
 import logging
 
@@ -14,8 +25,9 @@ from config import LoggingConfig, Translation
 #  =====================================================================
 
 
-# Define LogType that is used in _log_selected_to_file method.
 class LogType(Enum):
+    """LogType enum for _log_selected_to_file method."""
+
     FINAL = "final"
     TRANSLATION = "translation"
     # add other types and flags here as needed
@@ -59,6 +71,16 @@ logger = logging.getLogger(__name__)
 
 
 def build_message_to_obs(text: str, is_final: bool, language_code: str) -> str:
+    """Build and return a message to be sent to OBS.
+
+    Args:
+        text (str): The text to be displayed in OBS.
+        is_final (bool): Whether the message is final or not.
+        language_code (str): The language code of the message.
+
+    Returns:
+        str: The JSON message to be sent to OBS.
+    """
     message = {
         "recogText": text,
         "isFinal": is_final,
@@ -69,6 +91,7 @@ def build_message_to_obs(text: str, is_final: bool, language_code: str) -> str:
 
 
 def shorten_language_code(language_code: str) -> str:
+    """Shorten language code to 2 letters."""
     return language_code[:2]
 
 
@@ -78,6 +101,8 @@ def shorten_language_code(language_code: str) -> str:
 
 
 class WsMessageProcessor:
+    """class for handling WebSocket messages and translating text."""
+
     translator: Translator | None
     LOG_FILE_PATH = LoggingConfig.FILEPATH
     LOG_FILE_TIMESTAMP_FORMAT = LoggingConfig.TIMESTAMP_FORMAT
@@ -85,12 +110,19 @@ class WsMessageProcessor:
     def __init__(self):
         self.translator = None
 
+    #  SECTION:=============================================================
+    #            Functions, helper
+    #  =====================================================================
+
     def _log_selected_to_file(self, text: str, log_type: LogType) -> None:
         """
-        Write text to the log file only if the corresponding flag in LoggingConfig is True.
+        Write text to the log file only if the corresponding flags are enabled.
+
+        Flags are written in LoggingConfig.
         This implementation uses direct file I/O to avoid conflicts with FastAPI's logging.
 
-        Before using this method, check LogType class, LogginConfig and flag_map.
+        Note:
+          Before using this method, check LogType class, LogginConfig and flag_map.
         """
         if not LoggingConfig.ENABLE:
             return  # Do not log if logging is disabled
@@ -121,18 +153,18 @@ class WsMessageProcessor:
     def _loginfo_recognition_text(
         self, recognition_text: str, is_final: bool, language_code: str
     ) -> None:
+        """Log the recognition text with appropriate prefix."""
         is_final_text = "[Final  ]" if is_final else "[Interim]"
         logger.info(f"{is_final_text} {language_code}: {recognition_text}")
-
-    #  SECTION:=============================================================
-    #            Functions, helper
-    #  =====================================================================
 
     def _unpack_message(
         self, message: str
     ) -> tuple[str, bool, str | None, str | None] | None:
         """
         Parse the incoming JSON message and extract relevant info.
+
+        Args:
+            message (str): The JSON message to parse.
 
         Returns:
             tuple: (reocg_text, is_final, language_code, language_label)
@@ -166,6 +198,7 @@ class WsMessageProcessor:
     ) -> dict:
         """
         Translate the text using Translator and return dict result.
+
         Initializes Translator if not already initialized.
         The initialization uses Translation in config.py
         """
@@ -219,9 +252,10 @@ class WsMessageProcessor:
         # Pass recognition text to other modules
         # Toggle the modules by config.py
         if is_final:
-            # Log final text to console and file if needed.
+            # Log final text to console
             self._log_selected_to_file(recog_text, LogType.FINAL)
 
+            # Translate final text
             if Translation.ENABLE == "True":
                 # Translate text
                 result = await self._translate_text(recog_text, language_code or "")

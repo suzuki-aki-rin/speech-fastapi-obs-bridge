@@ -1,3 +1,17 @@
+"""This module provides a Translator class for translating text.
+
+The Translator class encapsulates the logic for translating text using different APIs.
+
+Examples:
+
+  translator = Translator(source_lang="en", target_lang="ja")
+  result_dict = await translator.translate_as_dict("Hello, world!")
+  print("Dict result:", result_dict)
+
+  result_json = await translator.translate_as_json("Hello, world!")
+  print("JSON result:", result_json)k
+"""
+
 import json
 import httpx
 
@@ -5,6 +19,8 @@ from config import Urls
 
 
 class Translator:
+    """Class for translating text using different APIs."""
+
     def __init__(
         self,
         source_lang: str,
@@ -45,7 +61,13 @@ class Translator:
     #  =====================================================================
 
     async def call_api(self, text: str) -> str:
-        """Call the underlying translation API and return the translated text  or somethig."""
+        """Call the underlying translation API and return the translated text.
+
+        Args:
+          text (str): The text to translate.
+        Returns:
+          str: The translated text.
+        """
         # API: gas, google application script returns a text that is translated.
         # The parameters: original text, source lang, target lang.
         if self.api_type == "gas":
@@ -65,9 +87,13 @@ class Translator:
         """
         Serialize the translation result dictionary to a JSON string.
 
-        :param original_text: The original input text.
-        :param translated_text: The translated text returned from API.
-        :return: JSON formatted string of the translation result.
+        Args:
+            original_text (str): The original text.
+            translated_text (str): The translated text.
+
+        Returns:
+            str: The JSON string representation of the translation result dictionary.
+            original_text (str): The original text.
         """
         result = self._make_result_dict(original_text, translated_text)
         return json.dumps(result, ensure_ascii=False)
@@ -76,8 +102,11 @@ class Translator:
         """
         Translate text and return the result as a JSON string.
 
-        :param text: Text to translate.
-        :return: JSON string containing translation details.
+        Args:
+            text (str): The text to translate.
+
+        Returns:
+            str: The JSON string representation of the translation result dictionary.
         """
         translated_text = await self.call_api(text)
         return self.to_json(text, translated_text)
@@ -86,8 +115,11 @@ class Translator:
         """
         Translate text and return the result as a Python dictionary.
 
-        :param text: Text to translate.
-        :return: Dictionary containing translation details.
+        Args:
+            text (str): The text to translate.
+
+        Returns:
+            dict: The translation result dictionary.
         """
         translated_text = await self.call_api(text)
         return self._make_result_dict(text, translated_text)
