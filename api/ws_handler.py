@@ -124,9 +124,6 @@ class WsMessageProcessor:
         Note:
           Before using this method, check LogType class, LogginConfig and flag_map.
         """
-        if not LoggingConfig.ENABLE:
-            return  # Do not log if logging is disabled
-
         # Define a mapping from LogType to the corresponding flag
         flag_map = {
             LogType.FINAL: LoggingConfig.FINAL_TEXT_ENABLE,
@@ -253,7 +250,8 @@ class WsMessageProcessor:
         # Toggle the modules by config.py
         if is_final:
             # Log final text to console
-            self._log_selected_to_file(recog_text, LogType.FINAL)
+            if LoggingConfig.ENABLE == "True":
+                self._log_selected_to_file(recog_text, LogType.FINAL)
 
             # Translate final text
             if Translation.ENABLE == "True":
