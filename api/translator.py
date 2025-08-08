@@ -14,8 +14,20 @@ Examples:
 
 import json
 import httpx
+import logging
 
 from config import Urls
+
+#  SECTION:=============================================================
+#            Logger
+#  =====================================================================
+
+logger = logging.getLogger(__name__)
+
+
+#  SECTION:=============================================================
+#            Class
+#  =====================================================================
 
 
 class Translator:
@@ -46,7 +58,9 @@ class Translator:
     #            Functions, helper
     #  =====================================================================
 
-    def _make_result_dict(self, original_text: str, translated_text: str) -> dict:
+    def _make_result_dict(
+        self, original_text: str, translated_text: str | None
+    ) -> dict:
         """Create a dictionary with translation data."""
         return {
             "translated_text": translated_text,
@@ -60,13 +74,13 @@ class Translator:
     #            Functions
     #  =====================================================================
 
-    async def call_api(self, text: str) -> str:
+    async def call_api(self, text: str) -> str | None:
         """Call the underlying translation API and return the translated text.
 
         Args:
           text (str): The text to translate.
         Returns:
-          str: The translated text.
+          str: The translated text or None if the API call fails.
         """
         # API: gas, google application script returns a text that is translated.
         # The parameters: original text, source lang, target lang.
@@ -76,24 +90,30 @@ class Translator:
                 "source": self.source_lang.lower(),
                 "target": self.target_lang.lower(),
             }
-            async with httpx.AsyncClient(follow_redirects=True) as client:
-                response = await client.get(self.base_url, params=params)
-                response.raise_for_status()
-                return response.text
+            try:
+                async with httpx.AsyncClient(follow_redirects=True) as client:
+                    response = await client.get(self.base_url, params=params)
+                    response.raise_for_status()
+                    return response.text
+            except httpx.HTTPError as e:
+                logger.error(f"HTTP request failed: {e}")
+                return None
+            except Exception as e:
+                logger.error(f"API request failed: {e}")
+                return None
         else:
             raise ValueError("Unsupported API type")
 
-    def to_json(self, original_text: str, translated_text: str) -> str:
+    def to_json(self, original_text: str, translated_text: str | None) -> str:
         """
         Serialize the translation result dictionary to a JSON string.
 
         Args:
             original_text (str): The original text.
-            translated_text (str): The translated text.
+            translated_text (str): The translated text or None.
 
         Returns:
             str: The JSON string representation of the translation result dictionary.
-            original_text (str): The original text.
         """
         result = self._make_result_dict(original_text, translated_text)
         return json.dumps(result, ensure_ascii=False)
