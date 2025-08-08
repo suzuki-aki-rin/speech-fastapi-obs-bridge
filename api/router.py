@@ -104,8 +104,8 @@ async def websocket_speech_recognition(websocket: WebSocket):
             if ws_OBS_speech_overlay is None:
                 print("websocket: OBS-speech-overlay does not connect")
                 break
-            await processor.process_ws_message(
-                websocket, ws_OBS_speech_overlay, message
+            asyncio.create_task(
+                processor.process_ws_message(websocket, ws_OBS_speech_overlay, message)
             )
     except WebSocketDisconnect:
         print("WebSocket disconnected")
