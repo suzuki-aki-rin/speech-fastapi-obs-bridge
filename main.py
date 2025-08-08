@@ -1,5 +1,6 @@
 from pathlib import Path
 import uvicorn
+import logging
 
 # from bot import Bot
 from fastapi import FastAPI
@@ -7,7 +8,18 @@ from fastapi.staticfiles import StaticFiles
 
 from api.router import router as fastapi_router
 
-# from api.message import set_bot
+#  SECTION:=============================================================
+#            Logger
+#  =====================================================================
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s: %(message)s"
+)
+
+#  SECTION:=============================================================
+#            Attributes
+#  =====================================================================
+
 
 app = FastAPI()
 # bot = Bot()
@@ -16,6 +28,12 @@ app.include_router(fastapi_router)
 
 # set static directory
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+
+
+#  SECTION:=============================================================
+#            Endpoints
+#  =====================================================================
+
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # async def start_fastapi():
