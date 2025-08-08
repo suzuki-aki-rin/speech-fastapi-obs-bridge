@@ -18,10 +18,16 @@ from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import asyncio
+import logging
 
 from api.ws_handler import WsMessageProcessor
 from config import Endpoints, Htmls, WAITING_LOOP_SEC
 
+#  SECTION:=============================================================
+#            Logger
+#  =====================================================================
+
+logger = logging.getLogger(__name__)
 
 # SECTION:=============================================================
 #           Attributes
@@ -58,7 +64,9 @@ async def wait_external_websocket_connects(external_socket):
     elasped_time = 0
     while external_socket is None:
         if elasped_time > timeout:
-            print("websocket: OBS-speech-overlay does not connect within timeout")
+            logger.error(
+                "websocket: OBS-speech-overlay does not connect within timeout"
+            )
             return False
 
         # async wait
@@ -102,15 +110,15 @@ async def websocket_speech_recognition(websocket: WebSocket):
         while True:
             message = await websocket.receive_text()
             if ws_OBS_speech_overlay is None:
-                print("websocket: OBS-speech-overlay does not connect")
+                logger.error("websocket: OBS-speech-overlay does not connect")
                 break
             asyncio.create_task(
                 processor.process_ws_message(websocket, ws_OBS_speech_overlay, message)
             )
     except WebSocketDisconnect:
-        print("WebSocket disconnected")
+        logger.error("WebSocket disconnected")
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.error(f"WebSocket error: {e}")
 
 
 # WebSocket endpoint where OBS-speech-overlay script connects
@@ -123,14 +131,13 @@ async def websocket_obs_speech_overlay(websocket: WebSocket):
     await websocket.accept()
     # websocket has established, then store the websocket
     ws_OBS_speech_overlay = websocket
-    # print(ws_OBS_speech_overlay)
 
     try:
         while True:
             # does not expect receiving data.
             await asyncio.sleep(WAITING_LOOP_SEC)
     except WebSocketDisconnect:
-        print("WebSocket disconnected")
+        logger.error("WebSocket disconnected")
         ws_OBS_speech_overlay = None
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.error(f"WebSocket error: {e}")
