@@ -94,7 +94,7 @@ async def root(request: Request):
 @router.websocket(Endpoints.SPEECH_RECOGNITION_WS)
 async def websocket_speech_recognition(websocket: WebSocket):
     await websocket.accept()
-    # Wati for target websocket to connect. target is ws_OBS_speech_overlay.
+    # Wati for target websocket to connect. target is ws_OBS_speech_overlay, not this websocket.
     await wait_external_websocket_connects(ws_OBS_speech_overlay)
     # Create an instance of MessageProcessor so translator persists per connection
     processor = WsMessageProcessor()
