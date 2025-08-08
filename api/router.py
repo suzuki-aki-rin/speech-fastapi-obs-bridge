@@ -49,6 +49,24 @@ ws_OBS_speech_overlay: WebSocket | None = None
 # =====================================================================
 
 
+def task_done_callback(task: asyncio.Task):
+    """Handle task completion, log exceptions if any."""
+    try:
+        task.result()  # This will raise exception if task failed
+    except Exception as e:
+        logger.error(f"Task raised exception: {e}")
+
+
+def schedule_task(task: asyncio.Task, tasks_set: set):
+    """
+    Schedule a given asyncio.Task by adding to the global tasks set
+    and attaching callbacks for exception handling and cleanup.
+    """
+    task.add_done_callback(task_done_callback)
+    tasks_set.add(task)
+    task.add_done_callback(tasks_set.discard)
+
+
 async def wait_external_websocket_connects(external_socket):
     """Waits for the external WebSocket to connect.
 
@@ -104,21 +122,37 @@ async def websocket_speech_recognition(websocket: WebSocket):
     await websocket.accept()
     # Wati for target websocket to connect. target is ws_OBS_speech_overlay, not this websocket.
     await wait_external_websocket_connects(ws_OBS_speech_overlay)
-    # Create an instance of MessageProcessor so translator persists per connection
+
+    # Create an instance of MessagePrpocessor so translator persists per connection
     processor = WsMessageProcessor()
+
+    # A per-connection set of running tasks
+    running_tasks = set()
+
     try:
         while True:
             message = await websocket.receive_text()
             if ws_OBS_speech_overlay is None:
                 logger.error("websocket: OBS-speech-overlay does not connect")
                 break
-            asyncio.create_task(
+            task = asyncio.create_task(
                 processor.process_ws_message(websocket, ws_OBS_speech_overlay, message)
             )
+            schedule_task(task, running_tasks)
     except WebSocketDisconnect:
         logger.error("WebSocket disconnected")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
+    finally:
+        # Cancel any remaining tasks when connection closes
+        if running_tasks:
+            logger.info(
+                f"Cancelling {len(running_tasks)} running tasks for disconnected client."
+            )
+            for task in running_tasks:
+                task.cancel()
+            await asyncio.gather(*running_tasks, return_exceptions=True)
+            running_tasks.clear()  # Optional: Cancel remaining tasks related to this connection
 
 
 # WebSocket endpoint where OBS-speech-overlay script connects
