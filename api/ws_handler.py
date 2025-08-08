@@ -19,7 +19,8 @@ from enum import Enum
 from fastapi import WebSocket
 
 from api.translator import Translator
-from config import LoggingConfig, Translation
+from api.voicevox_engine_util import voicevox_say_female_async
+from config import LoggingConfig, Translation, VoicevoxConfig
 
 #  SECTION:=============================================================
 #            Constatnts
@@ -293,6 +294,10 @@ class WsMessageProcessor:
             # Log final text to console
             if LoggingConfig.ENABLE == "True":
                 self._log_selected_to_file(recog_text, LogType.FINAL)
+            # Voicevox
+            if VoicevoxConfig.ENABLE == "True":
+                task = asyncio.create_task(voicevox_say_female_async(recog_text))
+                schedule_task(task, self._running_tasks)
 
             # Translate final text
             if Translation.ENABLE == "True":
