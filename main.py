@@ -1,3 +1,9 @@
+"""Main module for FastAPI app.
+
+Examples:
+    python main.py
+"""
+
 from pathlib import Path
 import uvicorn
 import logging
