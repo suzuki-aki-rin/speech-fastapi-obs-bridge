@@ -96,6 +96,24 @@ def shorten_language_code(language_code: str) -> str:
     return language_code[:2]
 
 
+def task_done_callback(task: asyncio.Task):
+    """Handle task completion, log exceptions if any."""
+    try:
+        task.result()  # This will raise exception if task failed
+    except Exception as e:
+        logger.error(f"Task raised exception: {e}")
+
+
+def schedule_task(task: asyncio.Task, tasks_set: set):
+    """
+    Schedule a given asyncio.Task by adding to the global tasks set
+    and attaching callbacks for exception handling and cleanup.
+    """
+    task.add_done_callback(task_done_callback)
+    tasks_set.add(task)
+    task.add_done_callback(tasks_set.discard)
+
+
 #  SECTION:=============================================================
 #            Class
 #  =====================================================================
@@ -111,6 +129,7 @@ class WsMessageProcessor:
     def __init__(self):
         self.translator = None
         self._send_lock = asyncio.Lock()
+        self._running_tasks = set()
 
     #  SECTION:=============================================================
     #            Functions, helper
@@ -217,6 +236,25 @@ class WsMessageProcessor:
             result = await self.translator.translate_as_dict(text_to_translate)
             return result
 
+    async def translate_and_send_to_obs(
+        self,
+        ws_target: WebSocket | None,
+        text_to_translate: str,
+        text_language_code: str,
+    ) -> None:
+        try:
+            translation_result = await self._translate_text(
+                text_to_translate, text_language_code
+            )
+            # Log translated text to log file
+            self._log_selected_to_file(
+                translation_result["translated_text"], LogType.TRANSLATION
+            )
+            translation_json = json.dumps(translation_result)
+            await self._send_to_obs(ws_target, translation_json)
+        except Exception as e:
+            logger.error(f"Error translating text: {e}", exc_info=True)
+
     #  SECTION:=============================================================
     #            Functions, main
     #  =====================================================================
@@ -258,13 +296,13 @@ class WsMessageProcessor:
 
             # Translate final text
             if Translation.ENABLE == "True":
-                # Translate text
-                result = await self._translate_text(recog_text, language_code or "")
-                # Log translated text file if needed.
-                self._log_selected_to_file(
-                    result["translated_text"], LogType.TRANSLATION
+                task = asyncio.create_task(
+                    self.translate_and_send_to_obs(
+                        ws_message_target,
+                        recog_text,
+                        language_code or "",
+                    )
                 )
-                result_json = json.dumps(result, ensure_ascii=False)
-                # Send translated text to OBS
-                await self._send_to_obs(ws_message_target, result_json)
-                # Log translated text to console and file if needed.
+                schedule_task(task, self._running_tasks)
+
+            await asyncio.gather(*self._running_tasks, return_exceptions=True)
