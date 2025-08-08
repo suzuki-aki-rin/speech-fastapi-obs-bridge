@@ -11,6 +11,7 @@ Examples:
 
 import json
 import logging
+import asyncio
 
 from datetime import datetime
 from enum import Enum
@@ -109,6 +110,7 @@ class WsMessageProcessor:
 
     def __init__(self):
         self.translator = None
+        self._send_lock = asyncio.Lock()
 
     #  SECTION:=============================================================
     #            Functions, helper
@@ -186,7 +188,8 @@ class WsMessageProcessor:
             logger.error("No target WebSocket available")
             return
         try:
-            await ws_target.send_text(message_json)
+            async with self._send_lock:
+                await ws_target.send_text(message_json)
         except Exception as e:
             logger.error(f"Error sending message to OBS: {e}", exc_info=True)
 
