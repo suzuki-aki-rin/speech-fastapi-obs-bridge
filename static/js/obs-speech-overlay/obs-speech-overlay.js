@@ -1,6 +1,6 @@
 import { WSClient } from '../ws/wsclient.js';
 import config from './config.js';
-
+import { testShowMesasgeOriginals } from '../tests/obs-speech-overlay.test.js';
 //  SECTION:============================================================= 
 //            Functions     
 //  ===================================================================== 
@@ -93,17 +93,19 @@ let lastFinalText = "";
 // When final, update text and copy it to text history area, #oldOriginal.
 // eraseTime has passed after update, text shown is erased.
 function updateNewOriginal(recogText, isFinal, eraseTime) {
-  updateText(textNode, recogText);
+  updateText(newOriginaltextNode, recogText);
   if (isFinal) {
     if (updateTimeout) { clearTimeout(updateTimeout); }
-    if (lastFinalText) {
-      updateText(oldOriginal, lastFinalText);
+    // Update text of #oldOriginal when final text is updated.
+    // If there is no text in #oldOriginal, do not update.
+    if (lastFinalText && oldOriginal.textContent) {
+      updateTextEraseLater(oldOriginal, lastFinalText, eraseTime);
     }
     lastFinalText = recogText;
     updateTimeout = setTimeout(() => {
       // updateText(oldOriginal, textNode.textContent);
-      updateTextEraseLater(oldOriginal, textNode.textContent, eraseTime);
-      eraseText(textNode);
+      updateTextEraseLater(oldOriginal, newOriginaltextNode.textContent, eraseTime);
+      eraseText(newOriginaltextNode);
       updateTimeout = null;
     }, eraseTime);
   }
@@ -172,7 +174,7 @@ const newTranslated = document.getElementById(config.idNewTranslated);
 const oldOriginal = document.getElementById(config.idOldOrig);
 const oldTranslated = document.getElementById(config.idOldTranslated);
 const translatedContainer = document.getElementById(config.idTranslatedContainer);
-const { textNode: textNode, dots: dots } = appendTextNodeEtcToNewOriginal();
+const { textNode: newOriginaltextNode, dots: dots } = appendTextNodeEtcToNewOriginal();
 
 // If translated text is not used, remove it.
 if (!config.showTranslated) {

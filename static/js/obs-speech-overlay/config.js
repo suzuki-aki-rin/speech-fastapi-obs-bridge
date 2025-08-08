@@ -1,6 +1,6 @@
 const defaultConfig = {
   urlObsSpeechOverlayWs: 'ws://localhost:8000/ws/obs-speech-overlay',
-  eraseTimeMsec: 10000, // ms
+  eraseTimeMsec: 3000, // ms
   showTranslated: true,
   idNewOrig: 'newOriginal',
   idNewTranslated: 'newTranslated',
