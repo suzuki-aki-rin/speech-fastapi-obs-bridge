@@ -120,6 +120,12 @@ async def root(request: Request):
 # process_ws_message starts.
 @router.websocket(Endpoints.SPEECH_RECOGNITION_WS)
 async def websocket_speech_recognition(websocket: WebSocket):
+    logger.info(
+        "Waiting for websocket:speech-recognition. If connecton is not accepted soon, reload your client."
+    )
+    logger.info(
+        f"websocket:obs-speech-overlay exists now? : {ws_obs_speech_overlay is not None}"
+    )
     await websocket.accept()
     # Wati for target websocket to connect. target is ws_OBS_speech_overlay, not this websocket.
     await wait_external_websocket_connects(ws_OBS_speech_overlay)
@@ -162,6 +168,9 @@ async def websocket_speech_recognition(websocket: WebSocket):
 @router.websocket(Endpoints.OBS_SPEECH_OVERLAY_WS)
 async def websocket_obs_speech_overlay(websocket: WebSocket):
     global ws_OBS_speech_overlay
+    logger.info(
+        "Waiting for websocket:obs-speech-overlay. If connection is not accepted soon, reload you client."
+    )
     # When OBS browser source starts, websocket between fast api and OBS establishes.
     await websocket.accept()
     # websocket has established, then store the websocket
