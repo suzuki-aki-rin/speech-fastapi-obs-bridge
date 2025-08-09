@@ -41,8 +41,8 @@ router = APIRouter()
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 
-# Store websocket to send message to OBS-speech-overlay.html
-ws_OBS_speech_overlay: WebSocket | None = None
+# Store websocket to send message to obs-speech-overlay.html
+ws_obs_speech_overlay: WebSocket | None = None
 
 
 # SECTION:=============================================================
@@ -84,7 +84,7 @@ async def wait_external_websocket_connects(external_socket):
     while external_socket is None:
         if elasped_time > timeout:
             logger.error(
-                "websocket: OBS-speech-overlay does not connect within timeout"
+                "websocket: obs-speech-overlay does not connect within timeout"
             )
             return False
 
@@ -127,8 +127,8 @@ async def websocket_speech_recognition(websocket: WebSocket):
         f"websocket:obs-speech-overlay exists now? : {ws_obs_speech_overlay is not None}"
     )
     await websocket.accept()
-    # Wati for target websocket to connect. target is ws_OBS_speech_overlay, not this websocket.
-    await wait_external_websocket_connects(ws_OBS_speech_overlay)
+    # Wati for target websocket to connect. target is ws_obs_speech_overlay, not this websocket.
+    await wait_external_websocket_connects(ws_obs_speech_overlay)
 
     # Create an instance of MessagePrpocessor so translator persists per connection
     processor = WsMessageProcessor()
@@ -139,11 +139,11 @@ async def websocket_speech_recognition(websocket: WebSocket):
     try:
         while True:
             message = await websocket.receive_text()
-            if ws_OBS_speech_overlay is None:
-                logger.error("websocket: OBS-speech-overlay does not connect")
+            if ws_obs_speech_overlay is None:
+                logger.error("websocket: obs-speech-overlay does not connect")
                 break
             task = asyncio.create_task(
-                processor.process_ws_message(websocket, ws_OBS_speech_overlay, message)
+                processor.process_ws_message(websocket, ws_obs_speech_overlay, message)
             )
             schedule_task(task, running_tasks)
     except WebSocketDisconnect:
@@ -162,19 +162,19 @@ async def websocket_speech_recognition(websocket: WebSocket):
             running_tasks.clear()  # Optional: Cancel remaining tasks related to this connection
 
 
-# WebSocket endpoint where OBS-speech-overlay script connects
+# WebSocket endpoint where obs-speech-overlay script connects
 # For sending message to OBS. Nothing to be received.
 # Keep websocket connection with while loop
 @router.websocket(Endpoints.OBS_SPEECH_OVERLAY_WS)
 async def websocket_obs_speech_overlay(websocket: WebSocket):
-    global ws_OBS_speech_overlay
+    global ws_obs_speech_overlay
     logger.info(
         "Waiting for websocket:obs-speech-overlay. If connection is not accepted soon, reload you client."
     )
     # When OBS browser source starts, websocket between fast api and OBS establishes.
     await websocket.accept()
     # websocket has established, then store the websocket
-    ws_OBS_speech_overlay = websocket
+    ws_obs_speech_overlay = websocket
 
     try:
         while True:
@@ -182,6 +182,6 @@ async def websocket_obs_speech_overlay(websocket: WebSocket):
             await asyncio.sleep(WAITING_LOOP_SEC)
     except WebSocketDisconnect:
         logger.error("WebSocket disconnected")
-        ws_OBS_speech_overlay = None
+        ws_obs_speech_overlay = None
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
