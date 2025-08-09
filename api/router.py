@@ -21,7 +21,7 @@ import asyncio
 import logging
 
 from api.ws_handler import WsMessageProcessor
-from config import Endpoints, Htmls, WAITING_LOOP_SEC
+from config import Endpoints, Htmls, WAITING_LOOP_SEC, HEARTBEAT
 
 #  SECTION:=============================================================
 #            Logger
@@ -174,7 +174,8 @@ async def websocket_obs_speech_overlay(websocket: WebSocket):
 
     try:
         while True:
-            # does not expect receiving data.
+            # Send a heartbeat ping/text every 30 seconds(default) to keep connection alive
+            await websocket.send_text(HEARTBEAT)
             await asyncio.sleep(WAITING_LOOP_SEC)
     except WebSocketDisconnect:
         logger.error("WebSocket disconnected")

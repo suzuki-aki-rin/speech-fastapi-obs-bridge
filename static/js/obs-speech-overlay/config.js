@@ -7,6 +7,7 @@ const defaultConfig = {
   idOldOrig: 'oldOriginal',
   idOldTranslated: 'oldTranslated',
   idTranslatedContainer: 'translatedSubtitle',
+  heartbeat: 'heartbeat',
 };
 
 export default defaultConfig;
