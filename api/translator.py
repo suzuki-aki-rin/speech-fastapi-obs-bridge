@@ -15,6 +15,7 @@ Examples:
 import json
 import httpx
 import logging
+import asyncio
 
 from config import Urls
 
@@ -23,6 +24,7 @@ from config import Urls
 #  =====================================================================
 
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 #  SECTION:=============================================================
@@ -148,8 +150,6 @@ class Translator:
 # =================
 # Usage examples
 # =================
-
-import asyncio
 
 
 async def main():

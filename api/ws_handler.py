@@ -23,29 +23,12 @@ from api.voicevox_engine_util import voicevox_say_female_async
 from config import LoggingConfig, Translation, VoicevoxConfig
 
 #  SECTION:=============================================================
-#            Constatnts
-#  =====================================================================
-
-
-class LogType(Enum):
-    """LogType enum for _log_selected_to_file method."""
-
-    FINAL = "final"
-    TRANSLATION = "translation"
-    # add other types and flags here as needed
-
-
-#  SECTION:=============================================================
 #            Logger
 #  =====================================================================
 
-# Setup main logger
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-)
-
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
+
 
 # # Setup separate logger for final texts and/or translated texts
 # # (disabled by default)
@@ -66,6 +49,19 @@ logger = logging.getLogger(__name__)
 #     else:
 #         # If logging disabled, add NullHandler to avoid "No handler found" warnings
 #         file_logger.addHandler(logging.NullHandler())
+
+#  SECTION:=============================================================
+#            Constatnts
+#  =====================================================================
+
+
+class LogType(Enum):
+    """LogType enum for _log_selected_to_file method."""
+
+    FINAL = "final"
+    TRANSLATION = "translation"
+    # add other types and flags here as needed
+
 
 #  SECTION:=============================================================
 #            Functions, utility

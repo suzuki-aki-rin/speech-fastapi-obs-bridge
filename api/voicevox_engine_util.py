@@ -11,10 +11,9 @@ import simpleaudio as sa
 
 from config import VOICEVOX_FEMALE, VOICEVOX_HOST, VOICEVOX_MALE, VOICEVOX_PORT
 
+
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s: %(message)s"
-)
+logger.addHandler(logging.NullHandler())
 
 TEXT = "テストです"
 SPEAKER = 3

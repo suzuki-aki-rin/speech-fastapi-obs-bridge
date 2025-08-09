@@ -28,6 +28,7 @@ from config import Endpoints, Htmls, WAITING_LOOP_SEC
 #  =====================================================================
 
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 # SECTION:=============================================================
 #           Attributes
