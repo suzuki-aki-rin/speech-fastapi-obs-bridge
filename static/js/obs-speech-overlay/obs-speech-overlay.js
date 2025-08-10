@@ -29,8 +29,8 @@ function appendTextNodeEtcToNewOriginal() {
 
 
 function onMessage(message) {
-  console.log("onmessage");
-  if (message.data === config.heartbeat) {
+  console.log("message received");
+  if (message === config.heartbeat) {
     // Reset connection timeout or ignore heartbeat message
     console.log("Received heartbeat");
     return;
