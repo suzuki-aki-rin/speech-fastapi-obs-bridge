@@ -29,6 +29,7 @@ from config import Endpoints, Htmls, WAITING_LOOP_SEC, HEARTBEAT
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
+logger.setLevel(logging.DEBUG)
 
 # SECTION:=============================================================
 #           Attributes
@@ -134,8 +135,10 @@ async def websocket_speech_recognition(websocket: WebSocket):
     # A per-connection set of running tasks
     running_tasks = set()
 
+    logger.debug("Before receiving message. both websockets connect")
     try:
         while True:
+            logger.debug("/speech-recognition recieved message.")
             message = await websocket.receive_text()
             if ws_obs_speech_overlay is None:
                 logger.error("websocket: obs-speech-overlay does not connect")
@@ -144,8 +147,8 @@ async def websocket_speech_recognition(websocket: WebSocket):
                 processor.process_ws_message(websocket, ws_obs_speech_overlay, message)
             )
             schedule_task(task, running_tasks)
-    except WebSocketDisconnect:
-        logger.error("WebSocket disconnected")
+    except WebSocketDisconnect as e:
+        logger.error(f"WebSocket: obs-speech-overlay??? disconnected: {e}")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
     finally:
@@ -175,10 +178,11 @@ async def websocket_obs_speech_overlay(websocket: WebSocket):
     try:
         while True:
             # Send a heartbeat ping/text every 30 seconds(default) to keep connection alive
-            await websocket.send_text(HEARTBEAT)
             await asyncio.sleep(WAITING_LOOP_SEC)
-    except WebSocketDisconnect:
-        logger.error("WebSocket disconnected")
+            logger.debug("send heartbeat")
+            await websocket.send_text(HEARTBEAT)
+    except WebSocketDisconnect as e:
+        logger.error(f"WebSocket: which? disconnected: {e}")
         ws_obs_speech_overlay = None
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
