@@ -37,13 +37,19 @@ body {
   margin-bottom: 20px;
 }
 
+.old-text
+{
+  color: #eeeeee; /* 字幕文字色 */
+  font-size: 30px; /* 推奨28～36pxの中央付近 */
+}
+
 /* Shows texts */
 .text-container {
   display: flex;
   visibility: hidden;
   flex-direction: row;
   align-items: flex-end;
-  border: 1px solid #ccc;
+  /* border: 1px solid #ccc; */
   padding: 4px;
   box-sizing: border-box;
   height: fit-content;
@@ -76,7 +82,7 @@ body {
     height: 8px;
     margin: 0 5px;
     border-radius: 50%;
-    background: black;
+    background:#3498db;;
     opacity: 0.3;
     animation: blink 1s infinite;
     vertical-align: middle;
