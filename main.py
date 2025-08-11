@@ -19,7 +19,8 @@ from api.router import router as fastapi_router
 #  =====================================================================
 
 logging.basicConfig(
-    level=logging.INFO,
+    # level=logging.INFO,
+    level=logging.ERROR,
     format="%(asctime)s %(name)s %(levelname)s: %(funcName)s: %(message)s",
 )
 

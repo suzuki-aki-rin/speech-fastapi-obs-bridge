@@ -121,14 +121,20 @@ async def root(request: Request):
 # process_ws_message starts.
 @router.websocket(Endpoints.SPEECH_RECOGNITION_WS)
 async def websocket_speech_recognition(websocket: WebSocket):
-    logger.info("Waiting for websocket:speech-recognition.")
-    logger.info(
-        f"websocket:obs-speech-overlay exists now? : {ws_obs_speech_overlay is not None}"
+    logger.debug("Waiting for websocket:speech-recognition.")
+    logger.debug(
+        f"websocket:obs-speech-overlay exists at first? : {ws_obs_speech_overlay is not None}"
     )
     await websocket.accept()
     # Wati for target websocket to connect. target is ws_obs_speech_overlay, not this websocket.
-    await wait_external_websocket_connects(ws_obs_speech_overlay)
+    isconnected_obs = await wait_external_websocket_connects(ws_obs_speech_overlay)
+    if not isconnected_obs:
+        logger.error("websocket: obs-speech-overlay does not connect")
+        return
 
+    logger.debug(
+        f"websocket:obs-speech-overlay is connected? : {ws_obs_speech_overlay is not None}"
+    )
     # Create an instance of MessagePrpocessor so translator persists per connection
     processor = WsMessageProcessor()
 
@@ -174,6 +180,7 @@ async def websocket_obs_speech_overlay(websocket: WebSocket):
     await websocket.accept()
     # websocket has established, then store the websocket
     ws_obs_speech_overlay = websocket
+    logger.debug("WebSocket: obs-overlay is set.")
 
     try:
         while True:
@@ -181,8 +188,9 @@ async def websocket_obs_speech_overlay(websocket: WebSocket):
             await asyncio.sleep(WAITING_LOOP_SEC)
             logger.debug("send heartbeat")
             await websocket.send_text(HEARTBEAT)
-    except WebSocketDisconnect as e:
-        logger.error(f"WebSocket: which? disconnected: {e}")
+    except WebSocketDisconnect:
+        logger.error("WebSocket: obs-overlay disconnected: ")
         ws_obs_speech_overlay = None
+        logger.debug("WebSocket: obs-overlay is set to None")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")

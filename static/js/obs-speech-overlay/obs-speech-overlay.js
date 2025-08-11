@@ -27,12 +27,19 @@ function appendTextNodeEtcToNewOriginal() {
 }
 
 
+function onClose() {
+  console.debug("the connection was closed.")
+}
+
+function onError(e) {
+  console.debug("the connection got error.", { e })
+}
 
 function onMessage(message) {
-  console.log("message received");
+  // console.log("message received");
   if (message === config.heartbeat) {
     // Reset connection timeout or ignore heartbeat message
-    console.log("Received heartbeat");
+    console.debug("Received heartbeat");
     return;
   }
 
@@ -188,7 +195,7 @@ if (!config.showTranslated) {
 }
 
 // Instantiate Websocket client.
-const wsclient = new WSClient({ url: config.urlObsSpeechOverlayWs, onMessage });
+const wsclient = new WSClient({ url: config.urlObsSpeechOverlayWs, onMessage, onClose, onError });
 
 
 
