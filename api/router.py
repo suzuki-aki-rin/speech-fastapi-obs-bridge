@@ -188,8 +188,16 @@ async def websocket_obs_speech_overlay(websocket: WebSocket):
             await asyncio.sleep(WAITING_LOOP_SEC)
             logger.debug("send heartbeat")
             await websocket.send_text(HEARTBEAT)
-    except WebSocketDisconnect:
-        logger.error("WebSocket: obs-overlay disconnected: ")
+            try:
+                pong = await asyncio.wait_for(websocket.receive_text(), timeout=5.0)
+                if pong != "pong":
+                    logger.warning(f"Expected pong, got: {pong}")
+            except asyncio.TimeoutError:
+                logger.warning("No pong received within timeout")
+    except WebSocketDisconnect as e:
+        logger.error(
+            f"WebSocket: obs-overlay disconnected. Code: {e.code}, Reason: {e.reason}"
+        )
         ws_obs_speech_overlay = None
         logger.debug("WebSocket: obs-overlay is set to None")
     except Exception as e:

@@ -40,6 +40,8 @@ function onMessage(message) {
   if (message === config.heartbeat) {
     // Reset connection timeout or ignore heartbeat message
     console.debug("Received heartbeat");
+    wsclient.send("pong");
+    console.debug("send pong");
     return;
   }
 
