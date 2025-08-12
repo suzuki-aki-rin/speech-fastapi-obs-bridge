@@ -9,7 +9,9 @@ import requests
 # import pyaudio
 import simpleaudio as sa
 
-from config import VOICEVOX_FEMALE, VOICEVOX_HOST, VOICEVOX_MALE, VOICEVOX_PORT
+from config import app_config
+
+# VOICEVOX_FEMALE, VOICEVOX_HOST, VOICEVOX_MALE, VOICEVOX_PORT
 
 
 logger = logging.getLogger(__name__)
@@ -21,6 +23,10 @@ SPEED = 1.0
 PITCH = 0.0
 INTONATION = 1.0
 VOLUME = 1.0
+
+VOICEVOX_BASE_URL = (
+    f"http://{app_config.voicevox.server.host}:{app_config.voicevox.server.port}/"
+)
 
 
 def voicevox_engine_say(
@@ -41,7 +47,8 @@ def voicevox_engine_say(
     # エンジン起動時に表示されているIP、portを指定
     try:
         query_response = requests.post(
-            f"http://{VOICEVOX_HOST}:{VOICEVOX_PORT}/audio_query", params=params
+            f"{VOICEVOX_BASE_URL}audio_query",
+            params=params,
         )
     except:
         print("----- Failed to connect to voicevox server ----- ")
@@ -58,7 +65,7 @@ def voicevox_engine_say(
 
     # 音声合成を実施
     synthesis = requests.post(
-        f"http://{VOICEVOX_HOST}:{VOICEVOX_PORT}/synthesis",
+        f"{VOICEVOX_BASE_URL}synthesis",
         headers={"Content-Type": "application/json"},
         params=params,
         data=json.dumps(query_data),
@@ -90,22 +97,22 @@ def voicevox_engine_say(
 def voicevox_say_male(_text=TEXT):
     voicevox_engine_say(
         text=_text,
-        speaker=VOICEVOX_MALE.SPEAKER.value,
-        speed=VOICEVOX_MALE.SPEED.value,
-        pitch=VOICEVOX_MALE.PITCH.value,
-        intonation=VOICEVOX_MALE.INTONATION.value,
-        volume=VOICEVOX_MALE.VOLUME.value,
+        speaker=app_config.voicevox.male_voice.speaker,
+        speed=app_config.voicevox.male_voice.speed,
+        pitch=app_config.voicevox.male_voice.pitch,
+        intonation=app_config.voicevox.male_voice.intonation,
+        volume=app_config.voicevox.male_voice.volume,
     )
 
 
 def voicevox_say_female(_text=TEXT):
     voicevox_engine_say(
         text=_text,
-        speaker=VOICEVOX_FEMALE.SPEAKER.value,
-        speed=VOICEVOX_FEMALE.SPEED.value,
-        pitch=VOICEVOX_FEMALE.PITCH.value,
-        intonation=VOICEVOX_FEMALE.INTONATION.value,
-        volume=VOICEVOX_FEMALE.VOLUME.value,
+        speaker=app_config.voicevox.female_voice.speaker,
+        speed=app_config.voicevox.female_voice.speed,
+        pitch=app_config.voicevox.female_voice.pitch,
+        intonation=app_config.voicevox.female_voice.intonation,
+        volume=app_config.voicevox.female_voice.volume,
     )
 
 
@@ -123,13 +130,13 @@ async def voicevox_engine_say_async(
     )
     async with httpx.AsyncClient() as client:
         query_response = await client.post(
-            f"http://{VOICEVOX_HOST}:{VOICEVOX_PORT}/audio_query", params=params
+            f"{VOICEVOX_BASE_URL}audio_query", params=params
         )
         query_response.raise_for_status()
         query_data = query_response.json()
         # Modify query_data...
         synthesis = await client.post(
-            f"http://{VOICEVOX_HOST}:{VOICEVOX_PORT}/synthesis",
+            f"{VOICEVOX_BASE_URL}synthesis",
             headers={"Content-Type": "application/json"},
             params=params,
             data=json.dumps(query_data),
@@ -146,22 +153,22 @@ async def voicevox_engine_say_async(
 async def voicevox_say_male_async(_text=TEXT):
     await voicevox_engine_say_async(
         text=_text,
-        speaker=VOICEVOX_MALE.SPEAKER.value,
-        speed=VOICEVOX_MALE.SPEED.value,
-        pitch=VOICEVOX_MALE.PITCH.value,
-        intonation=VOICEVOX_MALE.INTONATION.value,
-        volume=VOICEVOX_MALE.VOLUME.value,
+        speaker=app_config.voicevox.male_voice.speaker,
+        speed=app_config.voicevox.male_voice.speed,
+        pitch=app_config.voicevox.male_voice.pitch,
+        intonation=app_config.voicevox.male_voice.intonation,
+        volume=app_config.voicevox.male_voice.volume,
     )
 
 
 async def voicevox_say_female_async(_text=TEXT):
     await voicevox_engine_say_async(
         text=_text,
-        speaker=VOICEVOX_FEMALE.SPEAKER.value,
-        speed=VOICEVOX_FEMALE.SPEED.value,
-        pitch=VOICEVOX_FEMALE.PITCH.value,
-        intonation=VOICEVOX_FEMALE.INTONATION.value,
-        volume=VOICEVOX_FEMALE.VOLUME.value,
+        speaker=app_config.voicevox.female_voice.speaker,
+        speed=app_config.voicevox.female_voice.speed,
+        pitch=app_config.voicevox.female_voice.pitch,
+        intonation=app_config.voicevox.female_voice.intonation,
+        volume=app_config.voicevox.female_voice.volume,
     )
 
 

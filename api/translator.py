@@ -17,7 +17,7 @@ import httpx
 import logging
 import asyncio
 
-from config import Urls
+from config import app_config
 
 #  SECTION:=============================================================
 #            Logger
@@ -52,7 +52,7 @@ class Translator:
 
         # Settings for each API
         if self.api_type == "gas":
-            self.base_url = Urls.GAS_BASE_URL
+            self.base_url = app_config.urls.gas_base_url
         else:
             raise ValueError("Unsupported API type")
 

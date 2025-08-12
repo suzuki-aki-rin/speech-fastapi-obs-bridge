@@ -20,7 +20,7 @@ from fastapi import WebSocket
 
 from api.translator import Translator
 from api.voicevox_engine_util import voicevox_say_female_async
-from config import LoggingConfig, Translation, VoicevoxConfig
+from config import app_config
 
 #  SECTION:=============================================================
 #            Logger
@@ -120,8 +120,8 @@ class WsMessageProcessor:
     """class for handling WebSocket messages and translating text."""
 
     translator: Translator | None
-    LOG_FILE_PATH = LoggingConfig.FILEPATH
-    LOG_FILE_TIMESTAMP_FORMAT = LoggingConfig.TIMESTAMP_FORMAT
+    LOG_FILE_PATH = app_config.logging.filepath
+    LOG_FILE_TIMESTAMP_FORMAT = app_config.logging.timestamp_format
 
     def __init__(self):
         self.translator = None
@@ -144,8 +144,8 @@ class WsMessageProcessor:
         """
         # Define a mapping from LogType to the corresponding flag
         flag_map = {
-            LogType.FINAL: LoggingConfig.FINAL_TEXT_ENABLE,
-            LogType.TRANSLATION: LoggingConfig.TRANSLATION_ENABLE,
+            LogType.FINAL: app_config.logging.final_text_enable,
+            LogType.TRANSLATION: app_config.logging.translation_enable,
             # add other types and flags here as needed
         }
 
@@ -219,16 +219,17 @@ class WsMessageProcessor:
         The initialization uses Translation in config.py
         """
         # Check if source language of config.py matches the language of text to translate
-        if Translation.SOURCE_LANGUAGE != shorten_language_code(
+        if app_config.translation.source_language != shorten_language_code(
             text_language_code or ""
         ):
             raise ValueError(
-                f"language code mismatch: {Translation.SOURCE_LANGUAGE} != {text_language_code}"
+                f"language code mismatch: {app_config.translation.source_language} != {text_language_code}"
             )
         else:
             if self.translator is None:
                 self.translator = Translator(
-                    Translation.SOURCE_LANGUAGE, Translation.TARGET_LANGUAGE
+                    app_config.translation.source_language,
+                    app_config.translation.target_language,
                 )
             result = await self.translator.translate_as_dict(text_to_translate)
             return result
@@ -288,15 +289,15 @@ class WsMessageProcessor:
         # Toggle the modules by config.py
         if is_final:
             # Log final text to console
-            if LoggingConfig.ENABLE == "True":
+            if app_config.logging.enable:
                 self._log_selected_to_file(recog_text, LogType.FINAL)
             # Voicevox
-            if VoicevoxConfig.ENABLE == "True":
+            if app_config.voicevox.enable:
                 task = asyncio.create_task(voicevox_say_female_async(recog_text))
                 schedule_task(task, self._running_tasks)
 
             # Translate final text
-            if Translation.ENABLE == "True":
+            if app_config.translation.enable:
                 task = asyncio.create_task(
                     self.translate_and_send_to_obs(
                         ws_message_target,

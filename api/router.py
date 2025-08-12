@@ -22,13 +22,7 @@ import logging
 
 from api.ws_handler import WsMessageProcessor
 from api.ws_connection_manager import WsConnectionManager
-from config import (
-    Endpoints,
-    Htmls,
-    HEARTBEAT_INTERVAL,
-    HEARTBEAT_TEXT,
-    HEARTBEAT_TIMEOUT,
-)
+from config import app_config
 
 #  SECTION:=============================================================
 #            Logger
@@ -92,8 +86,8 @@ connection_manager = WsConnectionManager()
 
 async def heartbeat(
     ws: WebSocket,
-    heartbeat_text=HEARTBEAT_TEXT,
-    interval: int = HEARTBEAT_INTERVAL,
+    heartbeat_text=app_config.heartbeat.text,
+    interval: int = app_config.heartbeat.interval,
 ):
     """Send heartbeat"""
     try:
@@ -164,25 +158,25 @@ def schedule_task(task: asyncio.Task, tasks_set: set):
 
 
 # For Chrome browser to do speech recognition
-@router.get(Endpoints.SPEECH_RECOGNITION, response_class=HTMLResponse)
+@router.get(app_config.endpoints.speech_recognition, response_class=HTMLResponse)
 async def speech_recognition(request: Request):
     return templates.TemplateResponse(
-        f"{Htmls.SPEECH_RECOGNITION}", {"request": request}
+        f"{app_config.htmls.speech_recognition}", {"request": request}
     )
 
 
 # For OBS browser source to show data
-@router.get(Endpoints.OBS_SPEECH_OVERLAY, response_class=HTMLResponse)
+@router.get(app_config.endpoints.obs_speech_overlay, response_class=HTMLResponse)
 async def root(request: Request):
     return templates.TemplateResponse(
-        f"{Htmls.OBS_SPEECH_OVERLAY}", {"request": request}
+        f"{app_config.htmls.obs_speech_overlay}", {"request": request}
     )
 
 
 # WebSocket endpoint where speech-recogniton script connects
 # When receiving data from speech-recogniton script,
 # process_ws_message starts.
-@router.websocket(Endpoints.SPEECH_RECOGNITION_WS)
+@router.websocket(app_config.endpoints.speech_recognition_ws)
 async def websocket_speech_recognition(websocket: WebSocket):
     logger.debug("Waiting for websocket:speech-recognition.")
     logger.debug(
@@ -240,7 +234,7 @@ async def websocket_speech_recognition(websocket: WebSocket):
 # WebSocket endpoint where obs-speech-overlay script connects
 # For sending message to OBS. Nothing to be received.
 # Keep websocket connection with while loop
-@router.websocket(Endpoints.OBS_SPEECH_OVERLAY_WS)
+@router.websocket(app_config.endpoints.obs_speech_overlay_ws)
 async def websocket_obs_speech_overlay(websocket: WebSocket):
     logger.debug("Waiting for websocket:obs-speech-overlay.")
     # When OBS browser source starts, websocket between fast api and OBS establishes.
