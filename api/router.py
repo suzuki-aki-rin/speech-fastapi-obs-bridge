@@ -22,7 +22,13 @@ import logging
 
 from api.ws_handler import WsMessageProcessor
 from api.ws_connection_manager import WsConnectionManager
-from config import Endpoints, Htmls, WAITING_LOOP_SEC, HEARTBEAT
+from config import (
+    Endpoints,
+    Htmls,
+    HEARTBEAT_INTERVAL,
+    HEARTBEAT_TEXT,
+    HEARTBEAT_TIMEOUT,
+)
 
 #  SECTION:=============================================================
 #            Logger
@@ -51,26 +57,56 @@ connection_manager = WsConnectionManager()
 
 
 # SECTION:=============================================================
-#           Functions
+#           Functions, websocket
 # =====================================================================
 
 
-def task_done_callback(task: asyncio.Task):
-    """Handle task completion, log exceptions if any."""
+# async def heartbeat_and_check(
+#     ws: WebSocket,
+#     heartbeat_text=HEARTBEAT_TEXT,
+#     interval: int = HEARTBEAT_INTERVAL,
+#     timeout: int = HEARTBEAT_TIMEOUT,
+# ):
+# """Send heartbeat and check if the response is sent within the timeout."""
+# try:
+#     while True:
+#         await asyncio.sleep(interval)
+#         await ws.send_text(heartbeat_text)
+#         logger.debug("Sent a heartbeat")
+#         try:
+#             async with asyncio.timeout(timeout):
+#                 await ws.receive_text()
+#                 logger.debug(
+#                     "Recieved something after the heartbeat within the timeout"
+#                 )
+#         except asyncio.TimeoutError:
+#             logger.error("Pong timeout - connection may be dead")
+#             break
+# except asyncio.CancelledError:
+#     logger.info("Heartbeat task was cancelled")
+# except WebSocketDisconnect as e:
+#     logger.error(f"WebSocket disconnected. Code:{e.code} Heartbeat failed.")
+# except Exception as e:
+#     logger.error(f"Heartbeat failed: {e}")
+
+
+async def heartbeat(
+    ws: WebSocket,
+    heartbeat_text=HEARTBEAT_TEXT,
+    interval: int = HEARTBEAT_INTERVAL,
+):
+    """Send heartbeat"""
     try:
-        task.result()  # This will raise exception if task failed
+        while True:
+            await asyncio.sleep(interval)
+            await ws.send_text(heartbeat_text)
+            logger.debug("Sent a heartbeat")
+    except asyncio.CancelledError:
+        logger.info("Heartbeat task was cancelled")
+    except WebSocketDisconnect as e:
+        logger.error(f"WebSocket disconnected. Code:{e.code} Heartbeat failed.")
     except Exception as e:
-        logger.error(f"Task raised exception: {e}")
-
-
-def schedule_task(task: asyncio.Task, tasks_set: set):
-    """
-    Schedule a given asyncio.Task by adding to the global tasks set
-    and attaching callbacks for exception handling and cleanup.
-    """
-    task.add_done_callback(task_done_callback)
-    tasks_set.add(task)
-    task.add_done_callback(tasks_set.discard)
+        logger.error(f"Heartbeat failed: {e}")
 
 
 async def wait_external_websocket_connects(external_socket):
@@ -97,6 +133,29 @@ async def wait_external_websocket_connects(external_socket):
         await asyncio.sleep(interval)
         elasped_time = interval
     return True
+
+
+#  SECTION:=============================================================
+#            Functions, asyncio task management
+#  =====================================================================
+
+
+def task_done_callback(task: asyncio.Task):
+    """Handle task completion, log exceptions if any."""
+    try:
+        task.result()  # This will raise exception if task failed
+    except Exception as e:
+        logger.error(f"Task raised exception: {e}")
+
+
+def schedule_task(task: asyncio.Task, tasks_set: set):
+    """
+    Schedule a given asyncio.Task by adding to the global tasks set
+    and attaching callbacks for exception handling and cleanup.
+    """
+    task.add_done_callback(task_done_callback)
+    tasks_set.add(task)
+    task.add_done_callback(tasks_set.discard)
 
 
 # SECTION:=============================================================
@@ -161,9 +220,7 @@ async def websocket_speech_recognition(websocket: WebSocket):
                 )
                 schedule_task(task, running_tasks)
     except WebSocketDisconnect as e:
-        logger.error(
-            f"WebSocket: speech-recognition is disconnected. Code:{e}, Reason: {e.reason}"
-        )
+        logger.error(f"WebSocket: speech-recognition is disconnected. Code:{e.code}")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
     finally:
@@ -190,25 +247,18 @@ async def websocket_obs_speech_overlay(websocket: WebSocket):
     await websocket.accept()
     # websocket has established, then store the websocket
     connection_manager.add("ws_obs_speech_overlay", websocket=websocket)
-    logger.debug("WebSocket: obs-overlay is set.")
+    logger.debug("webSocket:obs-speech-overlay is set.")
 
+    # Send heartbeat to websocket: obs-speech-overlay
+    task_heartbeat = asyncio.create_task(heartbeat(websocket), name="heartbeat")
     try:
-        while True:
-            # Send a heartbeat ping/text every 30 seconds(default) to keep connection alive
-            await asyncio.sleep(WAITING_LOOP_SEC)
-            logger.debug("send heartbeat")
-            await websocket.send_text(HEARTBEAT)
-            try:
-                pong = await asyncio.wait_for(websocket.receive_text(), timeout=5.0)
-                if pong != "pong":
-                    logger.warning(f"Expected pong, got: {pong}")
-            except asyncio.TimeoutError:
-                logger.warning("No pong received within timeout")
+        while not task_heartbeat.done():
+            # Receive text from websocket: obs-speech-overlay, only pong.
+            await websocket.receive_text()  # discard or use
     except WebSocketDisconnect as e:
-        logger.error(
-            f"WebSocket: obs-speech-overlay is disconnected. Code: {e.code}, Reason: {e.reason}"
-        )
+        logger.error(f"WebSocket:obs-speech-overlay is disconnected. Code: {e.code}")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
     finally:
         connection_manager.remove("ws_obs_speech_overlay")
+        logger.debug("webSocket:obs-speech-overlay is removed")

@@ -55,22 +55,24 @@ class LoggingConfig(StrEnum):
 
 # Transaltor settings
 class Translation(StrEnum):
-    # ENABLE = "False"
-    ENABLE = "True"
+    ENABLE = "False"
+    # ENABLE = "True"
     SOURCE_LANGUAGE = "ja"
     TARGET_LANGUAGE = "en"
 
 
 class VoicevoxConfig(StrEnum):
-    ENABLE = "True"
+    # ENABLE = "True"
+    ENABLE = "False"
 
 
 #  SECTION:=============================================================
 #            Constants, others
 #  =====================================================================
 
-# loop interval(second) of websocket for obs-speech-overlay
-WAITING_LOOP_SEC = 1
+HEARTBEAT_TEXT = "heartbeat"
+HEARTBEAT_INTERVAL = 20
+HEARTBEAT_TIMEOUT = 3
 
 
 # TODO: need to change
