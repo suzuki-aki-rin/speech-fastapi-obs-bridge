@@ -1,0 +1,72 @@
+# Config file for the app
+#
+
+#  SECTION:============================================================= 
+#            Secrets     
+#  ===================================================================== 
+
+[secrets]
+gas_id = "Your ID"
+
+
+#  SECTION:============================================================= 
+#            Configs, Basic
+#  ===================================================================== 
+
+[endpoints]
+speech_recognition = "/speech-recognition"
+speech_recognition_ws = "/ws/speech-recognition"
+obs_speech_overlay = "/obs-speech-overlay"
+obs_speech_overlay_ws = "/ws/obs-speech-overlay"
+
+[htmls]
+speech_recognition = "speech-recognition.html"
+obs_speech_overlay = "obs-speech-overlay.html"
+
+[heartbeat]
+text = "heartbeat"
+interval = 20
+timeout = 3
+
+#  SECTION:============================================================= 
+#            Configs, Added featrues     
+#  ===================================================================== 
+
+# logging selected values
+[logging]
+enable = true
+filepath = "/tmp/logfile.log"
+timestamp_format = "%Y-%m-%d %H:%M:%S"
+final_text_enable = true
+translation_enable = true
+
+# Translations
+[urls]
+gas_base_url = "https://script.google.com/macros/s/{gas_id}/exec"
+
+[translation]
+enable = true
+source_language = "ja"
+target_language = "en"
+
+# Voicevox
+[voicevox]
+enable = true
+
+[voicevox.server]
+host = "127.0.0.1"
+port = 50021
+
+[voicevox.male_voice]
+speaker = 13
+speed = 1.2
+pitch = 1.0
+intonation = 1.0
+volume = 1.0
+
+[voicevox.female_voice]
+speaker = 14
+speed = 1.2
+pitch = 1.0
+intonation = 1.0
+volume = 1.0

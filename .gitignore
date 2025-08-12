@@ -1,5 +1,5 @@
 # config files that inlucdes secret values.
-config.py
+config.toml
 
 # scratch codes directory
 sandbox/
