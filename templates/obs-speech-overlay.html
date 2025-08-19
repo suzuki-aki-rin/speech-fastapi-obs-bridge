@@ -7,21 +7,21 @@
   </head>
   <body>
     <!-- OBS speech overlay test. -->
-    <div id="subtitleWrapper">
-      <div id="translatedSubtitle" class="subtitle-block">
-        <div id="oldTranslated" class="text-container old-text">
-          <!-- Old translated text -->
+    <div id="subtitle-wrapper-all">
+      <div id="translated-subtitle" class="subtitle-wrapper">
+        <div id="history-translated" class="text-container history-text">
+          <!-- history of translated texts -->
         </div>
-        <div id="newTranslated" class="text-container new-text">
-          <!-- New translated text -->
+        <div id="latest-translated-text" class="text-container latest-text">
+          <!-- Latest translated text -->
         </div>
       </div>
-      <div id="originalSubtitle" class="subtitle-block">
-        <div id="oldOriginal" class="text-container old-text">
-          <!-- Old original text -->
+      <div id="recog-text-subtitle" class="subtitle-wrapper">
+        <div id="history-recog-text" class="text-container history-text">
+          <!-- history of recognition texts are displayed here. -->
         </div>
-        <div id="newOriginal" class="text-container new-text">
-        <!-- New original text  -->
+        <div id="latest-recog-text" class="text-container latest-text"><span id="latest-recog-interim" class="interim"></span><span id="latest-recog-final" class="final">...</span></div>
+        <!-- latest recognition texts that are final or interim are displayed here. -->
         </div>
       </div>
     </div>
