@@ -5,8 +5,9 @@
 #            Secrets     
 #  ===================================================================== 
 
-[secrets]
-gas_id = "Your ID"
+# ## Secret values should be written in /secrets/
+# [secrets]
+# gas_id = ""
 
 
 #  SECTION:============================================================= 
@@ -40,14 +41,16 @@ timestamp_format = "%Y-%m-%d %H:%M:%S"
 final_text_enable = true
 translation_enable = true
 
-# Translations
-[urls]
-gas_base_url = "https://script.google.com/macros/s/{gas_id}/exec"
-
 [translation]
 enable = true
 source_language = "ja"
 target_language = "en"
+# Translation API
+api_type = "gas"
+# gas base url pattern. Write gas_id in secrets/ like filename:gas_id content:gas id
+api_base_url = "https://script.google.com/macros/s/{gas_id}/exec"
+# Empty is OK. gas api url is generated from api_base_url + gas_id(which is in secrets/. If nothing. Write it.)
+api_url = ""
 
 # Voicevox
 [voicevox]

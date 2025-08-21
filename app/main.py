@@ -12,14 +12,13 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from api.router import router as fastapi_router
-from logging_config import LOGGING_CONFIG
-
+from app.config.logging_config import LOGGING_CONFIG
+from app.routers import routers as fastapi_routers
 
 app = FastAPI()
 # bot = Bot()
 # set_bot(bot)
-app.include_router(fastapi_router)
+app.include_router(fastapi_routers)
 
 # set static directory
 STATIC_DIR = Path(__file__).resolve().parent / "static"

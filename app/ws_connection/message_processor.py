@@ -18,9 +18,9 @@ from enum import Enum
 
 from fastapi import WebSocket
 
-from api.translator import Translator
-from api.voicevox_engine_util import voicevox_say_female_async
-from config import app_config
+from app.api.translator import Translator
+from app.api.voicevox_engine_util import voicevox_say_female_async
+from app.config.app_config import app_config
 
 #  SECTION:=============================================================
 #            Logger
