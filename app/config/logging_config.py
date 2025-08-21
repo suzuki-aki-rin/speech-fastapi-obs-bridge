@@ -32,7 +32,7 @@ LOGGING_CONFIG = {
         "uvicorn.error": {"handlers": ["default"], "level": "INFO", "propagate": False},
         "uvicorn.access": {"handlers": ["access"], "level": "INFO", "propagate": False},
         # Your app’s logger
-        "myapp": {"handlers": ["default"], "level": "DEBUG", "propagate": False},
+        "app": {"handlers": ["default"], "level": "DEBUG", "propagate": False},
     },
     # 👇 Root logger — catches everything else (sqlalchemy, httpx, fastapi internals, etc.)
     "root": {
