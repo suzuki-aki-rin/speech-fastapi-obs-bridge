@@ -39,7 +39,7 @@ logger.addHandler(logging.NullHandler())
 routers = APIRouter()
 
 # set template directory
-TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
+TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 
 # # Store websocket to send message to obs-speech-overlay.html
