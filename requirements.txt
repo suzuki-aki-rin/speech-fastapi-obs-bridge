@@ -12,10 +12,12 @@ idna==3.10
 Jinja2==3.1.6
 MarkupSafe==3.0.2
 pydantic==2.11.7
+pydantic-settings==2.10.1
 pydantic_core==2.33.2
 python-dotenv==1.1.1
 PyYAML==6.0.2
 requests==2.32.4
+simpleaudio-patched==1.0.5
 sniffio==1.3.1
 starlette==0.47.2
 typing-inspection==0.4.1
