@@ -1,4 +1,5 @@
 from pydantic import BaseModel, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 import tomllib
 
@@ -7,17 +8,7 @@ import tomllib
 #            Constants
 #  =====================================================================
 
-TOML_PATH = "app/config/config.toml"
-
-# --- Models ---
-#  SECTION:=============================================================
-#            Secrets
-#  =====================================================================
-
-
-class SecretConfig(BaseModel):
-    gas_id: str
-
+TOML_PATH = "app/config/app_config.toml"
 
 #  SECTION:=============================================================
 #            Basic configs
@@ -55,14 +46,13 @@ class LoggingConfig(BaseModel):
     translation_enable: bool
 
 
-class UrlConfig(BaseModel):
-    gas_base_url: str
-
-
 class TranslationConfig(BaseModel):
     enable: bool
     source_language: str
     target_language: str
+    api_type: str
+    api_base_url: str
+    api_url: str
 
 
 class VoicevoxMaleVoiceConfig(BaseModel):
@@ -93,24 +83,28 @@ class VoicevoxConfig(BaseModel):
     female_voice: VoicevoxFemaleVoiceConfig
 
 
-class AppConfig(BaseModel):
-    secrets: SecretConfig
+class AppConfig(BaseSettings):
+    # secret values
+    gas_id: str
+
     endpoints: EndpointConfig
     htmls: HtmlConfig
     heartbeat: HeartbeatConfig
     logging: LoggingConfig
-    urls: UrlConfig
     translation: TranslationConfig
     voicevox: VoicevoxConfig
+
+    model_config = SettingsConfigDict(secrets_dir="secrets")
 
     # ---- Runs automatically after parsing TOML ----
     @model_validator(mode="after")
     def substitute_placeholders(self):
-        """Replace placeholders like {gas_id} in URLs using values from 'secret'."""
-        # Example: replace {gas_id} in gas_base_url
-        self.urls.gas_base_url = self.urls.gas_base_url.format(
-            gas_id=self.secrets.gas_id
-        )
+        if self.translation.api_type == "gas":
+            """Replace placeholders like {gas_id} in URLs using values from 'secret'."""
+            # Example: replace {gas_id} in gas_base_url
+            self.translation.api_url = self.translation.api_base_url.format(
+                gas_id=self.gas_id
+            )
         return self
 
 
@@ -128,7 +122,7 @@ app_config = load_config()
 def main():
     print(app_config.heartbeat.interval)
     print(app_config.voicevox.female_voice)
-    print(app_config.urls.gas_base_url)
+    print(app_config.translation.api_url)
 
 
 if __name__ == "__main__":

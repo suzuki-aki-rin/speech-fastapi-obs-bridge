@@ -40,6 +40,7 @@ class Translator:
         source_lang: str,
         target_lang: str,
         api_type: str = "gas",
+        api_url: str = "",
         result_type: str = "translated",
         # api_key: str | None = None,
     ):
@@ -47,14 +48,17 @@ class Translator:
         self.source_lang = source_lang
         self.target_lang = target_lang
         self.api_type = api_type
+        self.api_url = app_config.translation.api_url
         self.result_type = result_type
         # self.api_key = api_key
 
-        # Settings for each API
-        if self.api_type == "gas":
-            self.base_url = app_config.urls.gas_base_url
-        else:
-            raise ValueError("Unsupported API type")
+        # TODO:
+        # This validation should be done in app_config.py
+        # # Settings for each API
+        # if self.api_type == "gas":
+        #     self.base_url = app_config.urls.gas_base_url
+        # else:
+        #     raise ValueError("Unsupported API type")
 
     #  SECTION:=============================================================
     #            Functions, helper
@@ -94,7 +98,7 @@ class Translator:
             }
             try:
                 async with httpx.AsyncClient(follow_redirects=True) as client:
-                    response = await client.get(self.base_url, params=params)
+                    response = await client.get(self.api_url, params=params)
                     response.raise_for_status()
                     return response.text
             except httpx.HTTPError as e:
@@ -153,6 +157,8 @@ class Translator:
 
 
 async def main():
+    from app.config.app_config import app_config
+
     translator = Translator(source_lang="en", target_lang="ja")
 
     # Get result as dictionary
