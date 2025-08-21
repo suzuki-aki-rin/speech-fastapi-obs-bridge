@@ -1,8 +1,11 @@
 # config files that inlucdes secret values.
-config.toml
+secrets/
 
 # scratch codes directory
 sandbox/
+
+# todo memo
+todo.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

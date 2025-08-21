@@ -20,7 +20,7 @@ from fastapi import WebSocket
 
 from api.translator import Translator
 from api.voicevox_engine_util import voicevox_say_female_async
-from config import app_config
+from config.config import app_config
 
 #  SECTION:=============================================================
 #            Logger

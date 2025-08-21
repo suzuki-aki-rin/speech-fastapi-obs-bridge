@@ -5,8 +5,9 @@
 #            Secrets     
 #  ===================================================================== 
 
-[secrets]
-gas_id = "Your ID"
+## Secret values should be written in /secrets/
+# [secrets]
+# gas_id = ""
 
 
 #  SECTION:============================================================= 

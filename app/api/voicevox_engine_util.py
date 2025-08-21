@@ -9,7 +9,7 @@ import requests
 # import pyaudio
 import simpleaudio as sa
 
-from config import app_config
+from config.config import app_config
 
 # VOICEVOX_FEMALE, VOICEVOX_HOST, VOICEVOX_MALE, VOICEVOX_PORT
 

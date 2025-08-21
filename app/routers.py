@@ -20,9 +20,9 @@ from fastapi.templating import Jinja2Templates
 import asyncio
 import logging
 
-from api.ws_handler import WsMessageProcessor
-from api.ws_connection_manager import WsConnectionManager
-from config import app_config
+from ws_connection.message_processor import WsMessageProcessor
+from ws_connection.connection_manager import WsConnectionManager
+from config.config import app_config
 
 #  SECTION:=============================================================
 #            Logger
@@ -30,14 +30,13 @@ from config import app_config
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
-logger.setLevel(logging.DEBUG)
 
 # SECTION:=============================================================
 #           Attributes
 # =====================================================================
 
 # Main module imports this router
-router = APIRouter()
+routers = APIRouter()
 
 # set template directory
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
@@ -158,7 +157,7 @@ def schedule_task(task: asyncio.Task, tasks_set: set):
 
 
 # For Chrome browser to do speech recognition
-@router.get(app_config.endpoints.speech_recognition, response_class=HTMLResponse)
+@routers.get(app_config.endpoints.speech_recognition, response_class=HTMLResponse)
 async def speech_recognition(request: Request):
     return templates.TemplateResponse(
         f"{app_config.htmls.speech_recognition}", {"request": request}
@@ -166,7 +165,7 @@ async def speech_recognition(request: Request):
 
 
 # For OBS browser source to show data
-@router.get(app_config.endpoints.obs_speech_overlay, response_class=HTMLResponse)
+@routers.get(app_config.endpoints.obs_speech_overlay, response_class=HTMLResponse)
 async def root(request: Request):
     return templates.TemplateResponse(
         f"{app_config.htmls.obs_speech_overlay}", {"request": request}
@@ -176,7 +175,7 @@ async def root(request: Request):
 # WebSocket endpoint where speech-recogniton script connects
 # When receiving data from speech-recogniton script,
 # process_ws_message starts.
-@router.websocket(app_config.endpoints.speech_recognition_ws)
+@routers.websocket(app_config.endpoints.speech_recognition_ws)
 async def websocket_speech_recognition(websocket: WebSocket):
     logger.debug("Waiting for websocket:speech-recognition.")
     logger.debug(
@@ -234,7 +233,7 @@ async def websocket_speech_recognition(websocket: WebSocket):
 # WebSocket endpoint where obs-speech-overlay script connects
 # For sending message to OBS. Nothing to be received.
 # Keep websocket connection with while loop
-@router.websocket(app_config.endpoints.obs_speech_overlay_ws)
+@routers.websocket(app_config.endpoints.obs_speech_overlay_ws)
 async def websocket_obs_speech_overlay(websocket: WebSocket):
     logger.debug("Waiting for websocket:obs-speech-overlay.")
     # When OBS browser source starts, websocket between fast api and OBS establishes.

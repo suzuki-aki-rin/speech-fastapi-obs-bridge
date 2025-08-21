@@ -17,7 +17,7 @@ import httpx
 import logging
 import asyncio
 
-from config import app_config
+from config.config import app_config
 
 #  SECTION:=============================================================
 #            Logger

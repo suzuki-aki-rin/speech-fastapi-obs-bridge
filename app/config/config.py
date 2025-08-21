@@ -7,7 +7,7 @@ import tomllib
 #            Constants
 #  =====================================================================
 
-TOML_PATH = "config.toml"
+TOML_PATH = "app/config/config.toml"
 
 # --- Models ---
 #  SECTION:=============================================================
