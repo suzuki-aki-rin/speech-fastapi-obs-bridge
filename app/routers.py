@@ -20,9 +20,9 @@ from fastapi.templating import Jinja2Templates
 import asyncio
 import logging
 
-from ws_connection.message_processor import WsMessageProcessor
-from ws_connection.connection_manager import WsConnectionManager
-from config.config import app_config
+from app.ws_connection.message_processor import WsMessageProcessor
+from app.ws_connection.connection_manager import WsConnectionManager
+from app.config.app_config import app_config
 
 #  SECTION:=============================================================
 #            Logger

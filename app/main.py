@@ -12,9 +12,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from routers import routers as fastapi_routers
-from logging_config import LOGGING_CONFIG
-
+from app.config.logging_config import LOGGING_CONFIG
+from app.routers import routers as fastapi_routers
 
 app = FastAPI()
 # bot = Bot()
