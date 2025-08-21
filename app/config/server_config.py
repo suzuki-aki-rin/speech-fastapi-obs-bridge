@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     reload: bool = False
     workers: int = 1
     log_level: str = "info"
+    app_log_level: str = "info"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

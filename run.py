@@ -3,7 +3,7 @@ from app.config.logging_config import LOGGING_CONFIG
 from app.config.server_config import settings
 
 if __name__ == "__main__":
-    print(settings)
+    LOGGING_CONFIG["loggers"]["app"]["level"] = settings.app_log_level.upper()
     uvicorn.run(
         "app.main:app",
         host=settings.host,
