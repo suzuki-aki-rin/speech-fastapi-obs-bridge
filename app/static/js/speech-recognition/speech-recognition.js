@@ -96,7 +96,7 @@ function onResult(recogText, isFinal) {
 }
 
 function onError(error) {
-  alert('Speech recognition error: ' + error);
+  console.error(`Speech recogniton Error: ${error}`)
 }
 function onEnd() {
   if (recognizing) recognizer.start(); // auto-restart for continuous recognition

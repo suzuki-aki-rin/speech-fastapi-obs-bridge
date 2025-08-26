@@ -175,6 +175,8 @@ export function showMessage(message) {
       // updateNewOriginal(recogText, isFinal, config.eraseTimeMsec);
       break;
     case 'translated':
+      divLatestTranslated.textContent = obj.translated_text;
+
       // const text = obj.translated_text;
       // console.log("translated: ", text);
       // updateNewTranslated(text, config.eraseTimeMsec);
@@ -391,6 +393,4 @@ const wsclient = new WSClient({ url: config.urlObsSpeechOverlayWs, onMessage, on
 
 
 
-
-// testShowMesasgeOriginals();
-// testShowMesasgeTranslated();
+// showMessageDemo();

@@ -9,7 +9,7 @@ body {
   color: white;
   line-height: 1.3;
   /* font-family: "Rounded Mplus 1c Medium", sans-serif; */
-  font-size: 36px;
+  font-size: 26px;
   font-family: 'Rounded Mplus 1c Bold';
   -webkit-text-stroke: 6px black; /* add outline to characters */
   paint-order: stroke;
@@ -27,9 +27,15 @@ body {
   text-align: right;
 }
 
+.subtitle-wrapper{ }
+
 .text-container {
   display: block;
-  margin-bottom: 4px;
+  margin: 5px 5px 5px auto;
+  padding: 5px 10px;
+  border-radius: 10px;
+  width: fit-content;
+  /* margin-bottom: 4px; */
   background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -45,6 +51,7 @@ body {
 
 
 .history-text{
+  font-size: 0.8em
 }
 .history-text.show{
   animation-duration: 0.3s;
