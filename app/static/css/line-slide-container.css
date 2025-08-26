@@ -1,0 +1,155 @@
+body{
+  width:100%;
+  height:100%;
+}
+#app {
+  width: 100%;
+  height: 100px;
+  background: #f0f0f0;
+  margin-top: 50px;
+}
+
+
+/*  SECTION:============================================================= */
+/*            :root */
+/*  ===================================================================== */
+:root {
+  --max-lines: 2;
+  --line-order: downward;
+  --line-align: left;
+  --font-family: Ariel;
+  --font-color: white;
+  --font-bg-color: rgba(0, 0, 0, 0.5);
+  --line-height: 26px;
+  --font-size: 26px;
+  --newest-line-height: 32px;
+  --newest-font-size: 32px;
+  --newest-font-color: white;
+  --newest-font-bg-color:rgba(0, 0, 0, 0.8);
+  --interim-color: #aaaaaa;
+  --interim-bg-color: rgba(0, 0, 0, 0.6);
+  --padding: 8px;
+  --margin: 0px 8px;
+  --border-radius: 10px;
+  --slider-line-gap: 5px;
+  --height: calc(( var(--max-lines) - 1 ) *  var(--line-height) + var(--newest-line-height) + (16px + var(--slider-line-gap)) * var(--max-lines)) ;
+  /* --height: calc ( 4 * var(--line-height)); */
+  /* --height: calc (var(--newest-line-height) + 4 * var(--line-height)); */
+  /* --height: calc (var(--newest-line-height) + 16px + (var(--max-lines) - 1) * (var(--line-height) + 16px)); */
+}
+
+/*  SECTION:============================================================= */
+/*            recog-display-container */
+/*  ===================================================================== */
+
+.recog-display-container {
+  position:relative;
+  height:var(--height);
+  width:100%;
+}
+/*  SECTION:============================================================= */
+/*            text-slider-container */
+/*  ===================================================================== */
+
+.text-slider-container {
+  position: relative;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: var(--height);
+  overflow: hidden;
+  display:flex;
+  flex-wrap:wrap;
+  gap:20px 20px;
+  flex-direction: column;
+  z-index: 1;
+
+}
+
+.upward{
+  flex-direction: column-reverse;
+}
+
+.align-right{
+  align-items: end;
+}
+
+.text-slider-line {
+  position: absolute;
+  width: fit-content;
+  opacity: 0;
+  transform: translateY(0);
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  /*transition: transform 0.6s cubic-bezier(0.25, 1.5, 0.5, 1), opacity 0.4s ease; */
+
+
+  line-height: var(--line-height);
+  font-size:var(--font-size);
+  color: var(--font-color);
+  background-color: var(--font-bg-color);
+
+  padding: var(--padding);
+  margin: var(--margin);
+  border-radius: var(--border-radius);
+}
+
+.text-slider-line.show {
+  opacity: 1;
+}
+
+.text-slider-line.slide{
+}
+
+.text-slider-line.newest{
+  font-size: var(--newest-font-size);
+  line-height: var(--newest-line-height);
+  color: var(--newest-font-color);
+  background-color: var(--newest-font-bg-color);
+
+}
+
+.text-slider-line.fadeout {
+  opacity: 0;
+}
+
+
+/*  SECTION:============================================================= */
+/*            interim-display */
+/*  ===================================================================== */
+
+.interim-display-container{
+  position:absolute;
+  z-index: 10;
+  margin:0px;
+  padding:0px;
+  width : fit-content;
+  display: flex;
+}
+
+.interim-display-container.align-right{
+  right:0px;
+}
+
+.interim-display-container.align-right.upward{
+  bottom:0px;
+}
+
+
+.interim-display-text{
+  opacity : 1;
+  line-height:var(--newest-line-height);
+  font-size: var(--newest-font-size);
+  color:var(--interim-color);
+  background-color: var(--interim-bg-color);
+
+  width: fit-content;
+  padding: var(--padding);
+  margin: var(--margin);
+  border-radius: var(--border-radius);
+
+  transition: opacity 0.3s ease-out, background-color 0.3s ease-out;
+}
+
+.interim-display-text.hide{
+  opacity : 0;
+}

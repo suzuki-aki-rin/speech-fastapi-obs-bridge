@@ -2,7 +2,7 @@
 // Use them by import in obs-speech-overlay.js
 // Maybe, Test by using showMessage imported seems good. But I do not know 
 // what to do.
-import { showMessage } from "../obs-speech-overlay/obs-speech-overlay.js";
+// import { showMessage } from "../obs-speech-overlay/obs-speech-overlay.js";
 
 // Tests showMessage() when receiving original text
 export function testShowMesasgeOriginals() {
