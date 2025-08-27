@@ -9,12 +9,9 @@ Examples:
   await processor.process_ws_message(websocket, ws_OBS_speech_overlay, message)
 """
 
+import asyncio
 import json
 import logging
-import asyncio
-
-from datetime import datetime
-from enum import Enum
 
 from fastapi import WebSocket
 
@@ -29,38 +26,9 @@ from app.config.app_config import app_config
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
-
-# # Setup separate logger for final texts and/or translated texts
-# # (disabled by default)
-# # This logger does not log to file in FastAPI app.
-#
-# file_logger = logging.getLogger("file_logger")
-# file_logger.setLevel(logging.INFO)
-#
-# # Prevent adding multiple handlers if this code is run multiple times
-# if not file_logger.hasHandlers():
-#     if LoggingConfig.ENABLE:
-#         # file_handler = logging.FileHandler("final_texts.log", encoding="utf-8")
-#         file_handler = logging.FileHandler(log_file_path, encoding="utf-8")
-#         file_handler.setLevel(logging.INFO)
-#         formatter = logging.Formatter("%(asctime)s - %(message)s")
-#         file_handler.setFormatter(formatter)
-#         file_logger.addHandler(file_handler)
-#     else:
-#         # If logging disabled, add NullHandler to avoid "No handler found" warnings
-#         file_logger.addHandler(logging.NullHandler())
-
 #  SECTION:=============================================================
 #            Constatnts
 #  =====================================================================
-
-
-class LogType(Enum):
-    """LogType enum for _log_selected_to_file method."""
-
-    FINAL = "final"
-    TRANSLATION = "translation"
-    # add other types and flags here as needed
 
 
 #  SECTION:=============================================================
@@ -120,8 +88,6 @@ class WsMessageProcessor:
     """class for handling WebSocket messages and translating text."""
 
     translator: Translator | None
-    LOG_FILE_PATH = app_config.logging.filepath
-    LOG_FILE_TIMESTAMP_FORMAT = app_config.logging.timestamp_format
 
     def __init__(self):
         self.translator = None
@@ -131,39 +97,6 @@ class WsMessageProcessor:
     #  SECTION:=============================================================
     #            Functions, helper
     #  =====================================================================
-
-    def _log_selected_to_file(self, text: str, log_type: LogType) -> None:
-        """
-        Write text to the log file only if the corresponding flags are enabled.
-
-        Flags are written in LoggingConfig.
-        This implementation uses direct file I/O to avoid conflicts with FastAPI's logging.
-
-        Note:
-          Before using this method, check LogType class, LogginConfig and flag_map.
-        """
-        # Define a mapping from LogType to the corresponding flag
-        flag_map = {
-            LogType.FINAL: app_config.logging.final_text_enable,
-            LogType.TRANSLATION: app_config.logging.translation_enable,
-            # add other types and flags here as needed
-        }
-
-        if not flag_map.get(log_type, False):
-            return  # Do not log if flag is False or log_type unknown
-
-        log_time_stamp_format = self.LOG_FILE_TIMESTAMP_FORMAT or "%Y-%m-%d %H:%M:%S"
-
-        timestamp = datetime.now().strftime(log_time_stamp_format)
-        log_entry = f"{timestamp} - {text} - {log_type.value}\n"
-
-        # Open the log file in append mode with UTF-8 encoding
-        try:
-            with open(self.LOG_FILE_PATH, mode="a", encoding="utf-8") as f:
-                f.write(log_entry)
-        except Exception as e:
-            # Optionally handle or print the error; here we just print to stderr
-            print(f"Failed to write to log file {self.LOG_FILE_PATH}: {e}")
 
     def _loginfo_recognition_text(
         self, recognition_text: str, is_final: bool, language_code: str
@@ -244,10 +177,6 @@ class WsMessageProcessor:
             translation_result = await self._translate_text(
                 text_to_translate, text_language_code
             )
-            # Log translated text to log file
-            self._log_selected_to_file(
-                translation_result["translated_text"], LogType.TRANSLATION
-            )
             translation_json = json.dumps(translation_result)
             await self._send_to_obs(ws_target, translation_json)
         except Exception as e:
@@ -271,9 +200,6 @@ class WsMessageProcessor:
             return
         recog_text, is_final, language_code, language_label = unpacked
 
-        # Log recognition text to console and file if needed.
-        self._loginfo_recognition_text(recog_text, is_final, language_code or "")
-
         # Send message to OBS, regardless of weather the recognition text is final or not
         # Build and send message for OBS
         message_for_obs = build_message_to_obs(
@@ -290,7 +216,8 @@ class WsMessageProcessor:
         if is_final:
             # Log final text to console
             if app_config.logging.enable:
-                self._log_selected_to_file(recog_text, LogType.FINAL)
+                # TODO:
+                pass
             # Voicevox
             if app_config.voicevox.enable:
                 task = asyncio.create_task(voicevox_say_female_async(recog_text))
