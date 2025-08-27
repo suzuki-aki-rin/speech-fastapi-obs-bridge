@@ -42,8 +42,6 @@ routers = APIRouter()
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 
-# # Store websocket to send message to obs-speech-overlay.html
-# ws_obs_speech_overlay: WebSocket | None = None
 
 # Manage WebSocket connections with connection_manager
 connection_manager = WsConnectionManager()
@@ -52,35 +50,6 @@ connection_manager = WsConnectionManager()
 # SECTION:=============================================================
 #           Functions, websocket
 # =====================================================================
-
-
-# async def heartbeat_and_check(
-#     ws: WebSocket,
-#     heartbeat_text=HEARTBEAT_TEXT,
-#     interval: int = HEARTBEAT_INTERVAL,
-#     timeout: int = HEARTBEAT_TIMEOUT,
-# ):
-# """Send heartbeat and check if the response is sent within the timeout."""
-# try:
-#     while True:
-#         await asyncio.sleep(interval)
-#         await ws.send_text(heartbeat_text)
-#         logger.debug("Sent a heartbeat")
-#         try:
-#             async with asyncio.timeout(timeout):
-#                 await ws.receive_text()
-#                 logger.debug(
-#                     "Recieved something after the heartbeat within the timeout"
-#                 )
-#         except asyncio.TimeoutError:
-#             logger.error("Pong timeout - connection may be dead")
-#             break
-# except asyncio.CancelledError:
-#     logger.info("Heartbeat task was cancelled")
-# except WebSocketDisconnect as e:
-#     logger.error(f"WebSocket disconnected. Code:{e.code} Heartbeat failed.")
-# except Exception as e:
-#     logger.error(f"Heartbeat failed: {e}")
 
 
 async def heartbeat(
@@ -100,32 +69,6 @@ async def heartbeat(
         logger.error(f"WebSocket disconnected. Code:{e.code} Heartbeat failed.")
     except Exception as e:
         logger.error(f"Heartbeat failed: {e}")
-
-
-async def wait_external_websocket_connects(external_socket):
-    """Waits for the external WebSocket to connect.
-
-    Args:
-        external_socket (WebSocket): The external WebSocket to wait for.
-    Returns:
-        bool: True if the external WebSocket is connected, False otherwise.
-    """
-    # polling timeout 10sec
-    timeout = 10
-    # polling interval 0.5sec
-    interval = 0.5
-    elasped_time = 0
-    while external_socket is None:
-        if elasped_time > timeout:
-            logger.error(
-                "websocket: obs-speech-overlay does not connect within timeout"
-            )
-            return False
-
-        # async wait
-        await asyncio.sleep(interval)
-        elasped_time = interval
-    return True
 
 
 #  SECTION:=============================================================
@@ -183,16 +126,6 @@ async def websocket_speech_recognition(websocket: WebSocket):
     )
     await websocket.accept()
     connection_manager.add("ws_speech_recognition", websocket=websocket)
-
-    # # Wati for target websocket to connect. target is ws_obs_speech_overlay, not this websocket.
-    # isconnected_obs = await wait_external_websocket_connects(ws_obs_speech_overlay)
-    # if not isconnected_obs:
-    #     logger.error("websocket: obs-speech-overlay does not connect")
-    #     return
-    #
-    # logger.debug(
-    #     f"websocket:obs-speech-overlay is connected? : {ws_obs_speech_overlay is not None}"
-    # )
 
     # Create an instance of MessagePrpocessor so translator persists per connection
     processor = WsMessageProcessor()
