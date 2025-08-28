@@ -1,187 +1,264 @@
 import asyncio
-import json
-import tempfile
 import logging
 
 import httpx
 import requests
 
-# import pyaudio
+import io
+import wave
 import simpleaudio as sa
 
-from app.config.app_config import app_config
 
-# VOICEVOX_FEMALE, VOICEVOX_HOST, VOICEVOX_MALE, VOICEVOX_PORT
-
+#  SECTION:=============================================================
+#            Logger
+#  =====================================================================
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
-TEXT = "テストです"
-SPEAKER = 3
-SPEED = 1.0
-PITCH = 0.0
-INTONATION = 1.0
-VOLUME = 1.0
-
-VOICEVOX_BASE_URL = (
-    f"http://{app_config.voicevox.server.host}:{app_config.voicevox.server.port}/"
-)
+#  SECTION:=============================================================
+#            Class
+#  =====================================================================
 
 
-def voicevox_engine_say(
-    text=TEXT,
-    speaker=SPEAKER,
-    speed=SPEED,
-    pitch=PITCH,
-    intonation=INTONATION,
-    volume=VOLUME,
-):
-    # 音声化する文言と話者を指定(3で標準ずんだもんになる)
-    params = (
-        ("text", text),
-        ("speaker", speaker),
-    )
+class VoicevoxAudioPlayer:
+    """Class for text to speech by Voicevox"""
 
-    # 音声合成用のクエリ作成
-    # エンジン起動時に表示されているIP、portを指定
-    try:
-        query_response = requests.post(
-            f"{VOICEVOX_BASE_URL}audio_query",
-            params=params,
+    def __init__(
+        self,
+        speaker: int,
+        speed: float,
+        pitch: float,
+        intonation: float,
+        volume: float,
+        host: str,
+        port: int,
+    ):
+        self.speaker = speaker
+        self.speed = speed
+        self.pitch = pitch
+        self.intonation = intonation
+        self.volume = volume
+        self.base_url = f"http://{host}:{port}/"
+
+    #  SECTION:=============================================================
+    #            Functions, helper
+    #  =====================================================================
+
+    async def _generate_query(self, text: str) -> dict[str, dict] | None:
+        params = {
+            "text": text,
+            "speaker": self.speaker,
+        }
+
+        try:
+            async with httpx.AsyncClient() as client:
+                query_response = await client.post(
+                    f"{self.base_url}audio_query",
+                    params=params,
+                )
+                query_response.raise_for_status()
+
+                # Modify query_response by using self. parameters
+                query_data = query_response.json()
+                query_data["speedScale"] = self.speed
+                query_data["witchScale"] = self.pitch
+                query_data["intonationScale"] = self.intonation
+                query_data["volumeScale"] = self.volume
+
+                query = {"params": params, "json": query_data}
+                # query = {"params": params, "json": json.dumps(query_data)}
+                return query
+
+        except httpx.HTTPStatusError as e:
+            logger.error("HTTP error occurred:", e)
+        except httpx.RequestError as e:
+            logger.error("A request error occurred:", e)
+        except Exception as e:
+            logger.error(f"Unexpected error: {e}")
+
+        return None
+
+    async def _synthesize_audio(self, query: dict[str, dict]) -> bytes | None:
+        try:
+            async with httpx.AsyncClient() as client:
+                synthesis = await client.post(
+                    f"{self.base_url}synthesis",
+                    headers={"Content-Type": "application/json"},
+                    params=query["params"],
+                    json=query["json"],
+                )
+            return synthesis.content
+
+        except httpx.HTTPStatusError as exc:
+            logger.error(
+                f"Error response {exc.response.status_code} while requesting {exc.request.url}"
+            )
+        except httpx.RequestError as exc:
+            logger.error(f"An error occurred while requesting {exc.request.url}: {exc}")
+        except Exception as exc:
+            logger.error(f"Unexpected error: {exc}")
+
+        return None
+
+    async def _play_audio(self, audio_binary: bytes) -> None:
+        # Use BytesIO to treat bytes as a file object
+        audio_io = io.BytesIO(audio_binary)
+
+        # Open the audio bytes as a wave file
+        with wave.open(audio_io, "rb") as wave_read:
+            # Extract audio parameters
+            audio_data = wave_read.readframes(wave_read.getnframes())
+            num_channels = wave_read.getnchannels()
+            bytes_per_sample = wave_read.getsampwidth()
+            sample_rate = wave_read.getframerate()
+
+        # Create a WaveObject from the audio data and parameters
+        wave_obj = sa.WaveObject(
+            audio_data, num_channels, bytes_per_sample, sample_rate
         )
-    except:
-        print("----- Failed to connect to voicevox server ----- ")
-        return
-        # raise SystemExit("EXIT ----- Failed to connect to voicevox server ----- ")
 
-    query_response.raise_for_status()
-    # speedScale': 1.0, 'pitchScale': 0.0, 'intonationScale': 1.0, 'volumeScale': 1
-    query_data = query_response.json()
-    query_data["speedScale"] = speed
-    query_data["witchScale"] = pitch
-    query_data["intonationScale"] = intonation
-    query_data["volumeScale"] = volume
-
-    # 音声合成を実施
-    synthesis = requests.post(
-        f"{VOICEVOX_BASE_URL}synthesis",
-        headers={"Content-Type": "application/json"},
-        params=params,
-        data=json.dumps(query_data),
-    )
-
-    # 再生処理
-    voice = synthesis.content
-    # pya = pyaudio.PyAudio()
-    #
-    # # サンプリングレートが24000以外だとずんだもんが高音になったり低音になったりする
-    # stream = pya.open(format=pyaudio.paInt16,
-    #                   channels=1,
-    #                   rate=24000,
-    #                   output=True)
-    #
-    # stream.write(voice)
-    # stream.stop_stream()
-    # stream.close()
-    # pya.terminate()
-
-    with tempfile.NamedTemporaryFile(delete=True) as tf:
-        tf.write(voice)
-        # play_obj = simpleaudio.play_buffer(voice, 1, 2, 24000)
-        wave_obj = sa.WaveObject.from_wave_file(tf.name)
+        # Play the audio
         play_obj = wave_obj.play()
+        # Await until the audio playback is done without blocking the event loop
+        while play_obj.is_playing():
+            await asyncio.sleep(0.1)
+
+        # # Wait until playback is complete
+        # play_obj.wait_done()
+
+    def _generate_query_sync(self, text: str) -> dict[str, dict] | None:
+        params = {
+            "text": text,
+            "speaker": self.speaker,
+        }
+
+        try:
+            query_response = requests.post(
+                f"{self.base_url}audio_query",
+                params=params,
+            )
+            query_response.raise_for_status()
+
+            # Modify query_response by using self. parameters
+            query_data = query_response.json()
+            query_data["speedScale"] = self.speed
+            query_data["witchScale"] = self.pitch
+            query_data["intonationScale"] = self.intonation
+            query_data["volumeScale"] = self.volume
+
+            query = {"params": params, "json": query_data}
+            return query
+
+        except requests.exceptions.HTTPError as e:
+            logger.error("HTTP error occurred:", e)
+            return None
+        except requests.exceptions.RequestException as e:
+            logger.error("A request error occurred:", e)
+        except Exception as e:
+            logger.error(f"Failed. error: {e}")
+
+        return None
+
+    def _synthesize_audio_sync(self, query: dict[str, dict]) -> bytes | None:
+        try:
+            synthesis = requests.post(
+                f"{self.base_url}synthesis",
+                headers={"Content-Type": "application/json"},
+                params=query["params"],
+                json=query["json"],
+            )
+            return synthesis.content
+
+        except requests.exceptions.HTTPError as e:
+            logger.error("HTTP error occurred:", e)
+            return None
+        except requests.exceptions.RequestException as e:
+            logger.error("A request error occurred:", e)
+        except Exception as e:
+            logger.error(f"Failed. error: {e}")
+
+        return None
+
+    def _play_audio_sync(self, audio_binary: bytes) -> None:
+        # Use BytesIO to treat bytes as a file object
+        audio_io = io.BytesIO(audio_binary)
+
+        # Open the audio bytes as a wave file
+        with wave.open(audio_io, "rb") as wave_read:
+            # Extract audio parameters
+            audio_data = wave_read.readframes(wave_read.getnframes())
+            num_channels = wave_read.getnchannels()
+            bytes_per_sample = wave_read.getsampwidth()
+            sample_rate = wave_read.getframerate()
+
+        # Create a WaveObject from the audio data and parameters
+        wave_obj = sa.WaveObject(
+            audio_data, num_channels, bytes_per_sample, sample_rate
+        )
+
+        # Play the audio
+        play_obj = wave_obj.play()
+        # Wait until playback is complete
         play_obj.wait_done()
 
+    #  SECTION:=============================================================
+    #            Functions, Main
+    #  =====================================================================
 
-def voicevox_say_male(_text=TEXT):
-    voicevox_engine_say(
-        text=_text,
-        speaker=app_config.voicevox.male_voice.speaker,
-        speed=app_config.voicevox.male_voice.speed,
-        pitch=app_config.voicevox.male_voice.pitch,
-        intonation=app_config.voicevox.male_voice.intonation,
-        volume=app_config.voicevox.male_voice.volume,
-    )
+    async def say(self, text: str) -> None:
+        query = await self._generate_query(text)
+        audio = await self._synthesize_audio(query) if query else None
+        if audio:
+            await self._play_audio(audio)
 
-
-def voicevox_say_female(_text=TEXT):
-    voicevox_engine_say(
-        text=_text,
-        speaker=app_config.voicevox.female_voice.speaker,
-        speed=app_config.voicevox.female_voice.speed,
-        pitch=app_config.voicevox.female_voice.pitch,
-        intonation=app_config.voicevox.female_voice.intonation,
-        volume=app_config.voicevox.female_voice.volume,
-    )
-
-
-async def voicevox_engine_say_async(
-    text=TEXT,
-    speaker=SPEAKER,
-    speed=SPEED,
-    pitch=PITCH,
-    intonation=INTONATION,
-    volume=VOLUME,
-):
-    params = (
-        ("text", text),
-        ("speaker", speaker),
-    )
-    async with httpx.AsyncClient() as client:
-        query_response = await client.post(
-            f"{VOICEVOX_BASE_URL}audio_query", params=params
-        )
-        query_response.raise_for_status()
-        query_data = query_response.json()
-        # Modify query_data...
-        synthesis = await client.post(
-            f"{VOICEVOX_BASE_URL}synthesis",
-            headers={"Content-Type": "application/json"},
-            params=params,
-            data=json.dumps(query_data),
-        )
-        voice = synthesis.content
-    with tempfile.NamedTemporaryFile(delete=True) as tf:
-        tf.write(voice)
-        # play_obj = simpleaudio.play_buffer(voice, 1, 2, 24000)
-        wave_obj = sa.WaveObject.from_wave_file(tf.name)
-        play_obj = wave_obj.play()
-        play_obj.wait_done()
-
-
-async def voicevox_say_male_async(_text=TEXT):
-    await voicevox_engine_say_async(
-        text=_text,
-        speaker=app_config.voicevox.male_voice.speaker,
-        speed=app_config.voicevox.male_voice.speed,
-        pitch=app_config.voicevox.male_voice.pitch,
-        intonation=app_config.voicevox.male_voice.intonation,
-        volume=app_config.voicevox.male_voice.volume,
-    )
-
-
-async def voicevox_say_female_async(_text=TEXT):
-    await voicevox_engine_say_async(
-        text=_text,
-        speaker=app_config.voicevox.female_voice.speaker,
-        speed=app_config.voicevox.female_voice.speed,
-        pitch=app_config.voicevox.female_voice.pitch,
-        intonation=app_config.voicevox.female_voice.intonation,
-        volume=app_config.voicevox.female_voice.volume,
-    )
+    def configure(
+        self,
+        *,
+        speaker: int | None = None,
+        speed: float | None = None,
+        pitch: float | None = None,
+        intonation: float | None = None,
+        volume: float | None = None,
+    ) -> None:
+        if speaker is not None:
+            self.speaker = speaker
+        if speed is not None:
+            self.speed = speed
+        if pitch is not None:
+            self.pitch = pitch
+        if intonation is not None:
+            self.intonation = intonation
+        if volume is not None:
+            self.volume = volume
 
 
 async def main():
-    task1 = asyncio.create_task(voicevox_engine_say_async(text="Hello"))
-    task2 = asyncio.create_task(voicevox_engine_say_async(text="World"))
-    await asyncio.gather(task1, task2)
-    await voicevox_say_female_async(_text="こんにちは")
+    TEXT = "テストです"
+    SPEAKER = 3
+    SPEED = 1.0
+    PITCH = 0.0
+    INTONATION = 1.0
+    VOLUME = 1.0
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+    )
+    voicevox_player = VoicevoxAudioPlayer(
+        speaker=SPEAKER,
+        speed=SPEED,
+        pitch=PITCH,
+        intonation=INTONATION,
+        volume=VOLUME,
+        host="localhost",
+        port=50021,
+    )
+
+    await voicevox_player.say(TEXT)
+
+    voicevox_player.configure(speaker=14)
+    await voicevox_player.say(TEXT)
 
 
 if __name__ == "__main__":
-    # text = "こんにちは。私の名前はずんだもんです。"
-    # # voicevox_engine_say(text, speaker=14, speed=2.0)
-    # voicevox_say_male(text)
-    # voicevox_say_female(text)
     asyncio.run(main())

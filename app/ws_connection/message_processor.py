@@ -16,7 +16,7 @@ import logging
 from fastapi import WebSocket
 
 from app.api.translator import Translator
-from app.api.voicevox_engine_util import voicevox_say_female_async
+from app.api.voicevox_engine_util import VoicevoxAudioPlayer
 from app.config.app_config import app_config
 
 #  SECTION:=============================================================
@@ -93,6 +93,7 @@ class WsMessageProcessor:
 
     def __init__(self):
         self.translator = None
+        self.voicevox = None
         self._send_lock = asyncio.Lock()
         self._running_tasks = set()
 
@@ -169,7 +170,7 @@ class WsMessageProcessor:
             result = await self.translator.translate_as_dict(text_to_translate)
             return result
 
-    async def translate_and_send_to_obs(
+    async def _translate_and_send_to_obs(
         self,
         ws_target: WebSocket | None,
         text_to_translate: str,
@@ -183,6 +184,24 @@ class WsMessageProcessor:
             await self._send_to_obs(ws_target, translation_json)
         except Exception as e:
             logger.error(f"Error translating text: {e}", exc_info=True)
+
+    async def _voicevox_say(self, text: str) -> None:
+        if not self.voicevox:
+            voice = app_config.voicevox
+            female = voice.female_voice
+            server = voice.server
+
+            self.voicevox = VoicevoxAudioPlayer(
+                speaker=female.speaker,
+                speed=female.speed,
+                intonation=female.intonation,
+                pitch=female.pitch,
+                volume=female.volume,
+                host=server.host,
+                port=server.port,
+            )
+
+        await self.voicevox.say(text)
 
     #  SECTION:=============================================================
     #            Functions, main
@@ -221,13 +240,13 @@ class WsMessageProcessor:
                 recog_text_logger.info(recog_text)
             # Voicevox
             if app_config.voicevox.enable:
-                task = asyncio.create_task(voicevox_say_female_async(recog_text))
+                task = asyncio.create_task(self._voicevox_say(recog_text))
                 schedule_task(task, self._running_tasks)
 
             # Translate final text
             if app_config.translation.enable:
                 task = asyncio.create_task(
-                    self.translate_and_send_to_obs(
+                    self._translate_and_send_to_obs(
                         ws_message_target,
                         recog_text,
                         language_code or "",
