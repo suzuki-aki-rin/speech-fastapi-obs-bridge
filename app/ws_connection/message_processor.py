@@ -187,7 +187,7 @@ class WsMessageProcessor:
             logger.error(f"Error translating text: {e}", exc_info=True)
 
     async def _voicevox_say(self, text: str) -> None:
-        if not self.voicevox:
+        if self.voicevox is None:
             voice = app_config.voicevox
             female = voice.female_voice
             server = voice.server

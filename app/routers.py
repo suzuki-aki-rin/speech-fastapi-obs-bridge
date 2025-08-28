@@ -98,27 +98,30 @@ def schedule_task(task: asyncio.Task, tasks_set: set):
 #           Endpoints
 # =====================================================================
 
+endpoints = app_config.endpoints
+htmls = app_config.htmls
+
 
 # For Chrome browser to do speech recognition
-@routers.get(app_config.endpoints.speech_recognition, response_class=HTMLResponse)
+@routers.get(endpoints.speech_recognition, response_class=HTMLResponse)
 async def speech_recognition(request: Request):
     return templates.TemplateResponse(
-        f"{app_config.htmls.speech_recognition}", {"request": request}
+        f"{htmls.speech_recognition}", {"request": request}
     )
 
 
 # For OBS browser source to show data
-@routers.get(app_config.endpoints.obs_speech_overlay, response_class=HTMLResponse)
+@routers.get(endpoints.obs_speech_overlay, response_class=HTMLResponse)
 async def root(request: Request):
     return templates.TemplateResponse(
-        f"{app_config.htmls.obs_speech_overlay}", {"request": request}
+        f"{htmls.obs_speech_overlay}", {"request": request}
     )
 
 
 # WebSocket endpoint where speech-recogniton script connects
 # When receiving data from speech-recogniton script,
 # process_ws_message starts.
-@routers.websocket(app_config.endpoints.speech_recognition_ws)
+@routers.websocket(endpoints.speech_recognition_ws)
 async def websocket_speech_recognition(websocket: WebSocket):
     logger.debug("Waiting for websocket:speech-recognition.")
     logger.debug(
@@ -127,7 +130,7 @@ async def websocket_speech_recognition(websocket: WebSocket):
     await websocket.accept()
     connection_manager.add("ws_speech_recognition", websocket=websocket)
 
-    # Create an instance of MessagePrpocessor so translator persists per connection
+    # Create an instance of MessagePrpocessor
     processor = WsMessageProcessor()
     # A per-connection set of running tasks
     running_tasks = set()
@@ -166,7 +169,7 @@ async def websocket_speech_recognition(websocket: WebSocket):
 # WebSocket endpoint where obs-speech-overlay script connects
 # For sending message to OBS. Nothing to be received.
 # Keep websocket connection with while loop
-@routers.websocket(app_config.endpoints.obs_speech_overlay_ws)
+@routers.websocket(endpoints.obs_speech_overlay_ws)
 async def websocket_obs_speech_overlay(websocket: WebSocket):
     logger.debug("Waiting for websocket:obs-speech-overlay.")
     # When OBS browser source starts, websocket between fast api and OBS establishes.

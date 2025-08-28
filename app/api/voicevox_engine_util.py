@@ -71,9 +71,9 @@ class VoicevoxAudioPlayer:
                 return query
 
         except httpx.HTTPStatusError as e:
-            logger.error("HTTP error occurred:", e)
+            logger.error(f"HTTP error occurred: {e}")
         except httpx.RequestError as e:
-            logger.error("A request error occurred:", e)
+            logger.error(f"A request error occurred: {e}")
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
 
