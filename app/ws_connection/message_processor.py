@@ -26,6 +26,8 @@ from app.config.app_config import app_config
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
+recog_text_logger = logging.getLogger("recog_text_logger")
+
 #  SECTION:=============================================================
 #            Constatnts
 #  =====================================================================
@@ -216,8 +218,7 @@ class WsMessageProcessor:
         if is_final:
             # Log final text to console
             if app_config.logging.enable:
-                # TODO:
-                pass
+                recog_text_logger.info(recog_text)
             # Voicevox
             if app_config.voicevox.enable:
                 task = asyncio.create_task(voicevox_say_female_async(recog_text))

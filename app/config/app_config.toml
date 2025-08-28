@@ -36,7 +36,7 @@ timeout = 3
 # logging selected values
 [logging]
 enable = true
-filepath = "/tmp/logfile.log"
+filepath = "/tmp/recog_text_%Y-%m-%d-%H-%M-%S.log"
 timestamp_format = "%Y-%m-%d %H:%M:%S"
 final_text_enable = true
 translation_enable = true

@@ -1,8 +1,9 @@
+from datetime import datetime
+from pathlib import Path
+
+import tomllib
 from pydantic import BaseModel, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pathlib import Path
-import tomllib
-
 
 #  SECTION:=============================================================
 #            Constants
@@ -44,6 +45,12 @@ class LoggingConfig(BaseModel):
     timestamp_format: str
     final_text_enable: bool
     translation_enable: bool
+
+    @model_validator(mode="after")
+    def expand_filepath(cls, model):
+        # Expand date format if present in filepath
+        model.filepath = datetime.now().strftime(model.filepath)
+        return model
 
 
 class TranslationConfig(BaseModel):
