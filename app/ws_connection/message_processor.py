@@ -89,8 +89,6 @@ def schedule_task(task: asyncio.Task, tasks_set: set):
 class WsMessageProcessor:
     """class for handling WebSocket messages and translating text."""
 
-    translator: Translator | None
-
     def __init__(self):
         self.translator = None
         self.voicevox = None
@@ -163,9 +161,12 @@ class WsMessageProcessor:
             )
         else:
             if self.translator is None:
+                translation = app_config.translation
                 self.translator = Translator(
-                    app_config.translation.source_language,
-                    app_config.translation.target_language,
+                    source_lang=translation.source_language,
+                    target_lang=translation.target_language,
+                    api_type=translation.api_type,
+                    api_url=translation.api_url,
                 )
             result = await self.translator.translate_as_dict(text_to_translate)
             return result

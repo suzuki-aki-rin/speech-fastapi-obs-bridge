@@ -103,7 +103,6 @@ class AppConfig(BaseSettings):
 
     model_config = SettingsConfigDict(secrets_dir="secrets")
 
-    # ---- Runs automatically after parsing TOML ----
     @model_validator(mode="after")
     def substitute_placeholders(self):
         if self.translation.api_type == "gas":
@@ -112,6 +111,9 @@ class AppConfig(BaseSettings):
             self.translation.api_url = self.translation.api_base_url.format(
                 gas_id=self.gas_id
             )
+        else:
+            # Raise error becasue there is no cofig except for "gas"
+            raise ValueError("Unsupported API type")
         return self
 
 

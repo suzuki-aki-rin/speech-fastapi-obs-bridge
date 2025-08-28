@@ -17,8 +17,6 @@ import httpx
 import logging
 import asyncio
 
-from app.config.app_config import app_config
-
 #  SECTION:=============================================================
 #            Logger
 #  =====================================================================
@@ -39,26 +37,18 @@ class Translator:
         self,
         source_lang: str,
         target_lang: str,
-        api_type: str = "gas",
+        api_type: str,
         api_url: str = "",
         result_type: str = "translated",
-        # api_key: str | None = None,
+        api_key: str | None = None,
     ):
         """Initialize the Translator object with language settings and API type."""
         self.source_lang = source_lang
         self.target_lang = target_lang
         self.api_type = api_type
-        self.api_url = app_config.translation.api_url
+        self.api_url = api_url
         self.result_type = result_type
-        # self.api_key = api_key
-
-        # TODO:
-        # This validation should be done in app_config.py
-        # # Settings for each API
-        # if self.api_type == "gas":
-        #     self.base_url = app_config.urls.gas_base_url
-        # else:
-        #     raise ValueError("Unsupported API type")
+        self.api_key = api_key
 
     #  SECTION:=============================================================
     #            Functions, helper
@@ -159,7 +149,17 @@ class Translator:
 async def main():
     from app.config.app_config import app_config
 
-    translator = Translator(source_lang="en", target_lang="ja")
+    logging.basicConfig(
+        level=logging.DEBUG,
+    )
+
+    trans = app_config.translation
+    translator = Translator(
+        source_lang="en",
+        target_lang="ja",
+        api_type=trans.api_type,
+        api_url=trans.api_url,
+    )
 
     # Get result as dictionary
     result_dict = await translator.translate_as_dict("Hello, world!")
