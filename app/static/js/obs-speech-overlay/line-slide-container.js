@@ -15,6 +15,7 @@ const cssStyles = {
   newestFontColor: cssRootStyle.getPropertyValue("--newest-font-color"),
   newestFontBgColor: cssRootStyle.getPropertyValue("--newest-font-bg-color"),
   sliderLineGap: cssRootStyle.getPropertyValue("--slider-line-gap"),
+  sliderHideTime: Number(cssRootStyle.getPropertyValue("--slider-hide-time")),
   padding: cssRootStyle.getPropertyValue("--padding"),
 }
 
@@ -30,7 +31,12 @@ export class TextSlider {
     this.isUpward = options.isUpward || null;
     this.lastLine = null;
     this.isScrolled = true;
+    this.hideTimeMsec = options.hideTimeMsec || cssStyles.sliderHideTime;
+
+
     this.lines = [];
+    this.hideTimer = null;
+    this.isVisible = null;
 
     this.lineHeight = this._generateLineHeight(cssStyles.lineHeight);
     this.newestLineHeight = this._generateLineHeight(cssStyles.newestLineHeight);
@@ -58,10 +64,10 @@ export class TextSlider {
 
   _updateNewestline(line) {
     if (this.lastLine) {
-      this.lastLine.classList.remove("newest-line");
+      this.lastLine.classList.remove("newest");
     }
     this.lastLine = line;
-    this.lastLine.classList.add("newest-line");
+    this.lastLine.classList.add("newest");
   }
 
   _removeOldestLine() {
@@ -91,6 +97,32 @@ export class TextSlider {
     });
   }
 
+  _hide() {
+    this.isVisible = false;
+    this.container.classList.add("hide");
+  }
+
+  _show() {
+    this.isVisible = true;
+    this.container.classList.remove("hide");
+  }
+
+  _setHideTimer(timerMsec) {
+  }
+
+  _updateHideTimer() {
+    // Clear hide timer if any.
+    if (this.hideTimer) {
+      clearTimeout(this.hideTimer);
+      this.hideTimer = null;
+    }
+    // Set hide timer
+    this.hideTimer = setTimeout(() => {
+      this._hide();
+    }, this.hideTimeMsec);
+  }
+
+
   scrollOnly() {
     this.isScrolled = true;
     this.pushText("");
@@ -98,6 +130,12 @@ export class TextSlider {
   }
 
   pushText(text) {
+    // For the feature : timer fadeout
+    this._updateHideTimer();
+    if (this.isVisible === false) {
+      this._show();
+    }
+
     // If last line is emptpy, push text to the last line.
     if (this.lastLine && this.lastLine.textContent === "") {
       const line = this.lastLine;
@@ -131,6 +169,7 @@ export class TextSlider {
     if (this.lines.length > this.maxLength) {
       this._removeOldestLine()
     }
+
   }
 
 }
