@@ -107,9 +107,6 @@ export class TextSlider {
     this.container.classList.remove("hide");
   }
 
-  _setHideTimer(timerMsec) {
-  }
-
   _updateHideTimer() {
     // Clear hide timer if any.
     if (this.hideTimer) {
@@ -122,6 +119,13 @@ export class TextSlider {
     }, this.hideTimeMsec);
   }
 
+  _autoHide() {
+    this._updateHideTimer();
+
+    if (this.isVisible === false) {
+      this._show();
+    }
+  }
 
   scrollOnly() {
     this.isScrolled = true;
@@ -130,11 +134,7 @@ export class TextSlider {
   }
 
   pushText(text) {
-    // For the feature : timer fadeout
-    this._updateHideTimer();
-    if (this.isVisible === false) {
-      this._show();
-    }
+    this._autoHide();
 
     // If last line is emptpy, push text to the last line.
     if (this.lastLine && this.lastLine.textContent === "") {
