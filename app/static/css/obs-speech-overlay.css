@@ -20,6 +20,7 @@ body {
 
 #recog-display{
   width:100%;
+  --max-lines: 2;
 }
 
 #trans-display{

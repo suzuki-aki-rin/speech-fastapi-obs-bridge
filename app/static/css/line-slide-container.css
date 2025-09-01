@@ -33,7 +33,7 @@ body{
   --border-radius: 10px;
   --slider-line-gap: 5px;
   --slider-hide-time: 30000;
-  --height: calc(( var(--max-lines) - 1 ) *  var(--line-height) + var(--newest-line-height) + (16px + var(--slider-line-gap)) * var(--max-lines)) ;
+  /* --height: calc(( var(--max-lines) - 1 ) *  var(--line-height) + var(--newest-line-height) + (16px + var(--slider-line-gap)) * var(--max-lines)) ; */
   /* --height: calc ( 4 * var(--line-height)); */
   /* --height: calc (var(--newest-line-height) + 4 * var(--line-height)); */
   /* --height: calc (var(--newest-line-height) + 16px + (var(--max-lines) - 1) * (var(--line-height) + 16px)); */
@@ -45,7 +45,7 @@ body{
 
 .recog-display-container {
   position:relative;
-  height:var(--height);
+  /* height:var(--height); */
   width:100%;
 }
 /*  SECTION:============================================================= */
@@ -57,7 +57,7 @@ body{
   top: 0px;
   left: 0px;
   width: 100%;
-  height: var(--height);
+  /* height: var(--height); */
   overflow: hidden;
   display:flex;
   flex-wrap:wrap;

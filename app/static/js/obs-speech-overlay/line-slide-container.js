@@ -1,22 +1,9 @@
 const cssRoot = document.querySelector(":root");
 const cssRootStyle = getComputedStyle(cssRoot);
-console.log(cssRootStyle.getPropertyValue("--line-order"));
 
-const cssStyles = {
-  lineHeight: cssRootStyle.getPropertyValue("--line-height"),
-  newestLineHeight: cssRootStyle.getPropertyValue("--newest-line-height"),
-  maxLines: cssRootStyle.getPropertyValue("--max-lines"),
-  lineOrder: cssRootStyle.getPropertyValue("--line-order"),
-  lineAlign: cssRootStyle.getPropertyValue("--line-align"),
-  fontSize: cssRootStyle.getPropertyValue("--font-size"),
-  fontColor: cssRootStyle.getPropertyValue("--font-color"),
-  fontBgColor: cssRootStyle.getPropertyValue("--font-bg-color"),
-  newestFontSize: cssRootStyle.getPropertyValue("--newest-font-size"),
-  newestFontColor: cssRootStyle.getPropertyValue("--newest-font-color"),
-  newestFontBgColor: cssRootStyle.getPropertyValue("--newest-font-bg-color"),
-  sliderLineGap: cssRootStyle.getPropertyValue("--slider-line-gap"),
-  sliderHideTime: Number(cssRootStyle.getPropertyValue("--slider-hide-time")),
-  padding: cssRootStyle.getPropertyValue("--padding"),
+function getParentCssValue(parentCss, propertyName) {
+  const cssValue = parentCss.getPropertyValue(propertyName) || cssRootStyle.getPropertyValue(propertyName);
+  return cssValue;
 }
 
 
@@ -26,20 +13,24 @@ export class TextSlider {
     this.parent = typeof parent === "string" ? document.querySelector(parent) : parent;
     if (!(this.parent instanceof HTMLElement)) throw new Error("Invalid parent");
 
-    this.maxLength = options.maxLength || cssStyles.maxLines;
+    this.parentCss = getComputedStyle(this.parent);
+
+    this.maxLines = options.maxLines || getParentCssValue(this.parentCss, "--max-lines");
+    // this.maxLength = options.maxLength || cssStyles.maxLines;
     this.isAlignRight = options.isAlignRight || null;
     this.isUpward = options.isUpward || null;
     this.lastLine = null;
     this.isScrolled = true;
-    this.hideTimeMsec = options.hideTimeMsec || cssStyles.sliderHideTime;
+    this.hideTimeMsec = options.hideTimeMsec || getParentCssValue(this.parentCss, "--slider-hide-time");
+    console.debug(this.hideTimeMsec);
 
 
     this.lines = [];
     this.hideTimer = null;
     this.isVisible = null;
 
-    this.lineHeight = this._generateLineHeight(cssStyles.lineHeight);
-    this.newestLineHeight = this._generateLineHeight(cssStyles.newestLineHeight);
+    this.lineHeight = this._generateLineHeight(getParentCssValue(this.parentCss, "--line-height"));
+    this.newestLineHeight = this._generateLineHeight(getParentCssValue(this.parentCss, "--newest-line-height"));
 
     this.container = document.createElement("div");
     this.container.className = "text-slider-container";
@@ -49,6 +40,8 @@ export class TextSlider {
     if (this.isUpward) {
       this.container.classList.add("upward");
     }
+
+    this.container.style.height = this._generateContainerHeight() + "px";
     this.parent.appendChild(this.container);
 
   }
@@ -59,7 +52,15 @@ export class TextSlider {
 
   // Generate line hight including padding and gap.
   _generateLineHeight(height) {
-    return this._pxToNum(height) + 2 * this._pxToNum(cssStyles.padding) + this._pxToNum(cssStyles.sliderLineGap);
+    return this._pxToNum(height)
+      + 2 * this._pxToNum(getParentCssValue(this.parentCss, "--padding"))
+      + this._pxToNum(getParentCssValue(this.parentCss, "--slider-line-gap"));
+  }
+
+  _generateContainerHeight() {
+    const height = (this.maxLines - 1) * this.lineHeight + this.newestLineHeight
+
+    return height;
   }
 
   _updateNewestline(line) {
@@ -71,11 +72,11 @@ export class TextSlider {
   }
 
   _removeOldestLine() {
-    const oldLine = this.lines[this.maxLength];
+    const oldLine = this.lines[this.maxLines];
     oldLine.classList.add("fadeout");
     oldLine.addEventListener("transitionend", () => oldLine.remove(), { once: true });
     this._updatePositions();
-    this.lines.splice(this.maxLength, 1);
+    this.lines.splice(this.maxLines, 1);
 
   }
 
@@ -166,7 +167,7 @@ export class TextSlider {
 
     this._updatePositions();
 
-    if (this.lines.length > this.maxLength) {
+    if (this.lines.length > this.maxLines) {
       this._removeOldestLine()
     }
 
@@ -226,9 +227,11 @@ export class RecogTextDisplay {
     this.parent = typeof parent === "string" ? document.querySelector(parent) : parent;
     if (!(this.parent instanceof HTMLElement)) throw new Error("Invalid parent");
 
+    this.parentCss = getComputedStyle(this.parent);
+
     this.isAlignRight = options.isAlignRight || false;
     this.isUpward = options.isUpward || false;
-    this.maxLength = options.maxLength || cssStyles.maxLines;
+    this.maxLines = options.maxLines || getParentCssValue(this.parentCss, "--max-lines");
 
     this.isFinal = false;
     this.recogText = null;
